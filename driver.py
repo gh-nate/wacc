@@ -23,6 +23,7 @@
 from pathlib import Path
 
 import argparse
+import shlex
 import subprocess
 import sys
 
@@ -49,7 +50,7 @@ args = parser.parse_args()
 stem = Path(args.input_file).name
 
 preprocessed_file = Path(stem + ".i")
-subprocess.run(f"gcc -E -P {args.input_file} -o {preprocessed_file}")
+subprocess.run(shlex.split(f"gcc -E -P {args.input_file} -o {preprocessed_file}"))
 preprocessed_file.unlink()
 
 if args.lex:
@@ -65,5 +66,5 @@ if args.S:
     sys.exit()
 
 assembly_file = Path(stem + ".s")
-subprocess.run(f"gcc {assembly_file} -o {stem}")
+subprocess.run(shlex.split(f"gcc {assembly_file} -o {stem}"))
 assembly_file.unlink()
