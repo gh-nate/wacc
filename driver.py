@@ -23,34 +23,36 @@
 from pathlib import Path
 
 import argparse
-import shlex
 import subprocess
 import sys
 
+COMMON_ACTION = "store_true"
 parser = argparse.ArgumentParser()
 parser.add_argument("input_file")
 parser.add_argument(
-    "-S", action="store_true", help="emit an assembly file, but not assemble or link it"
+    "-S",
+    action=COMMON_ACTION,
+    help="emit an assembly file, but not assemble or link it",
 )
 parser.add_argument(
-    "--lex", action="store_true", help="run the lexer, but stop before parsing"
+    "--lex", action=COMMON_ACTION, help="run the lexer, but stop before parsing"
 )
 parser.add_argument(
     "--parse",
-    action="store_true",
+    action=COMMON_ACTION,
     help="run the lexer and parser, but stop before assembly generation",
 )
 parser.add_argument(
     "--codegen",
-    action="store_true",
+    action=COMMON_ACTION,
     help="perform lexing, parsing, and assembly generation, but stop before code emission",
 )
 args = parser.parse_args()
 
-stem = Path(args.input_file).name
+stem = Path(args.input_file).stem
 
 preprocessed_file = Path(stem + ".i")
-subprocess.run(shlex.split(f"gcc -E -P {args.input_file} -o {preprocessed_file}"))
+subprocess.run(["gcc", "-E", "-P", args.input_file, "-o", str(preprocessed_file)])
 preprocessed_file.unlink()
 
 if args.lex:
@@ -66,5 +68,5 @@ if args.S:
     sys.exit()
 
 assembly_file = Path(stem + ".s")
-subprocess.run(shlex.split(f"gcc {assembly_file} -o {stem}"))
+subprocess.run(["gcc", str(assembly_file), "-o", stem])
 assembly_file.unlink()
