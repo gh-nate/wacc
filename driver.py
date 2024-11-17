@@ -23,6 +23,7 @@
 from pathlib import Path
 
 import argparse
+import lexer
 import subprocess
 import sys
 
@@ -53,6 +54,8 @@ stem = Path(args.input_file).stem
 
 preprocessed_file = Path(stem + ".i")
 subprocess.run(["gcc", "-E", "-P", args.input_file, "-o", str(preprocessed_file)])
+
+lexer.lex(preprocessed_file)
 preprocessed_file.unlink()
 
 if args.lex:
