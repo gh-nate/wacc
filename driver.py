@@ -24,42 +24,45 @@ from pathlib import Path
 
 import argparse
 import lexer
+import parser
 import subprocess
 import sys
 
 COMMON_ACTION = "store_true"
-parser = argparse.ArgumentParser()
-parser.add_argument("input_file")
-parser.add_argument(
+ap = argparse.ArgumentParser()
+ap.add_argument("input_file")
+ap.add_argument(
     "-S",
     action=COMMON_ACTION,
     help="emit an assembly file, but not assemble or link it",
 )
-parser.add_argument(
+ap.add_argument(
     "--lex", action=COMMON_ACTION, help="run the lexer, but stop before parsing"
 )
-parser.add_argument(
+ap.add_argument(
     "--parse",
     action=COMMON_ACTION,
     help="run the lexer and parser, but stop before assembly generation",
 )
-parser.add_argument(
+ap.add_argument(
     "--codegen",
     action=COMMON_ACTION,
     help="perform lexing, parsing, and assembly generation, but stop before code emission",
 )
-args = parser.parse_args()
+args = ap.parse_args()
 
 stem = Path(args.input_file).stem
 
 preprocessed_file = Path(stem + ".i")
 subprocess.run(["gcc", "-E", "-P", args.input_file, "-o", str(preprocessed_file)])
 
-lexer.lex(preprocessed_file)
+tokens = lexer.lex(preprocessed_file)
 preprocessed_file.unlink()
 
 if args.lex:
     sys.exit()
+
+parser.parse_program(tokens)
 
 if args.parse:
     sys.exit()
