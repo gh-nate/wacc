@@ -43,6 +43,14 @@ class ProgramAST(Program):
         self.function_definition = function_definition
         super().__init__()
 
+    def __eq__(self, o: object) -> bool:
+        if not isinstance(o, ProgramAST):
+            raise NotImplementedError
+        return self.function_definition == o.function_definition
+
+    def __repr__(self) -> str:
+        return f"Program({self.function_definition!r})"
+
 
 Identifier = NewType("Identifier", str)
 
@@ -53,14 +61,39 @@ class FunctionAST(FunctionDefinition):
         self.body = body
         super().__init__()
 
+    def __eq__(self, o: object) -> bool:
+        if not isinstance(o, FunctionAST):
+            return NotImplemented
+        return self.name == o.name and self.body == o.body
+
+    def __repr__(self) -> str:
+        return f"Function({self.name}, {self.body!r})"
+
 
 class ReturnAST(Statement):
     def __init__(self, exp: Exp) -> None:
         self.exp = exp
         super().__init__()
 
+    def __eq__(self, o: object) -> bool:
+        if not isinstance(o, ReturnAST):
+            return NotImplemented
+        return self.exp == o.exp
+
+    def __repr__(self) -> str:
+        return f"Return({self.exp!r})"
+
 
 class ConstantAST(Exp):
+
     def __init__(self, int: int) -> None:
         self.int = int
         super().__init__()
+
+    def __eq__(self, o: object) -> bool:
+        if not isinstance(o, ConstantAST):
+            return NotImplemented
+        return self.int == o.int
+
+    def __repr__(self) -> str:
+        return f"Constant({self.int})"

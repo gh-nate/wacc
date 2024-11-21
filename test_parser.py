@@ -18,30 +18,35 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from pathlib import Path
-
-import lexer
+import adsl
+import parser
 import unittest
 
 
-class TestLexer(unittest.TestCase):
-    def setUp(self) -> None:
-        self.source_file = Path("return_2.c")
-        with self.source_file.open("w") as f:
-            f.write(
-                """\
-int main(void) {
-    return 2;
-}"""
-            )
-
-    def tearDown(self) -> None:
-        self.source_file.unlink()
-
+class TestParser(unittest.TestCase):
     def test_listing_1_1(self) -> None:
+        fn_name, int_value = "main", 2
         self.assertEqual(
-            lexer.lex(self.source_file),
-            ["int", "main", "(", "void", ")", "{", "return", "2", ";", "}"],
+            parser.parse_program(
+                [
+                    "int",
+                    fn_name,
+                    "(",
+                    "void",
+                    ")",
+                    "{",
+                    "return",
+                    str(int_value),
+                    ";",
+                    "}",
+                ]
+            ),
+            adsl.ProgramAST(
+                adsl.FunctionAST(
+                    adsl.Identifier(fn_name),
+                    adsl.ReturnAST(adsl.ConstantAST(int_value)),
+                )
+            ),
         )
 
 
