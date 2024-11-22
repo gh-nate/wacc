@@ -18,7 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import adsl
+import asdl
 import parser
 import unittest
 
@@ -41,10 +41,10 @@ class TestParser(unittest.TestCase):
                     "}",
                 ]
             ),
-            adsl.ProgramAST(
-                adsl.FunctionAST(
-                    adsl.Identifier(fn_name),
-                    adsl.ReturnAST(adsl.ConstantAST(int_value)),
+            asdl.ProgramAST(
+                asdl.FunctionAST(
+                    asdl.Identifier(fn_name),
+                    asdl.ReturnAST(asdl.ConstantAST(int_value)),
                 )
             ),
         )
