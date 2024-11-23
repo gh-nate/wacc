@@ -23,6 +23,7 @@
 from pathlib import Path
 
 import argparse
+import codegen
 import lexer
 import parser
 import subprocess
@@ -62,10 +63,12 @@ preprocessed_file.unlink()
 if args.lex:
     sys.exit()
 
-parser.parse_program(tokens)
+tree = parser.parse_program(tokens)
 
 if args.parse:
     sys.exit()
+
+codegen.translate_program(tree)
 
 if args.codegen:
     sys.exit()

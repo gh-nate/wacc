@@ -30,6 +30,10 @@ class FunctionDefinition(ABC):
     pass
 
 
+class Instruction(ABC):
+    pass
+
+
 class Statement(ABC):
     pass
 
@@ -38,13 +42,31 @@ class Exp(ABC):
     pass
 
 
-class ProgramAST(Program):
+class Operand(ABC):
+    pass
+
+
+class ProgramAstNode(Program):
     def __init__(self, function_definition: FunctionDefinition) -> None:
         self.function_definition = function_definition
         super().__init__()
 
     def __eq__(self, o: object) -> bool:
-        if not isinstance(o, ProgramAST):
+        if not isinstance(o, ProgramAstNode):
+            raise NotImplementedError
+        return self.function_definition == o.function_definition
+
+    def __repr__(self) -> str:
+        return f"Program({self.function_definition!r})"
+
+
+class ProgramAssemblyConstruct(Program):
+    def __init__(self, function_definition: FunctionDefinition) -> None:
+        self.function_definition = function_definition
+        super().__init__()
+
+    def __eq__(self, o: object) -> bool:
+        if not isinstance(o, ProgramAssemblyConstruct):
             raise NotImplementedError
         return self.function_definition == o.function_definition
 
@@ -55,14 +77,14 @@ class ProgramAST(Program):
 Identifier = NewType("Identifier", str)
 
 
-class FunctionAST(FunctionDefinition):
+class FunctionAstNode(FunctionDefinition):
     def __init__(self, name: Identifier, body: Statement) -> None:
         self.name = name
         self.body = body
         super().__init__()
 
     def __eq__(self, o: object) -> bool:
-        if not isinstance(o, FunctionAST):
+        if not isinstance(o, FunctionAstNode):
             return NotImplemented
         return self.name == o.name and self.body == o.body
 
@@ -70,13 +92,28 @@ class FunctionAST(FunctionDefinition):
         return f"Function({self.name}, {self.body!r})"
 
 
-class ReturnAST(Statement):
+class FunctionAssemblyConstruct(FunctionDefinition):
+    def __init__(self, name: Identifier, instructions: list[Instruction]) -> None:
+        self.name = name
+        self.instructions = instructions
+        super().__init__()
+
+    def __eq__(self, o: object) -> bool:
+        if not isinstance(o, FunctionAssemblyConstruct):
+            return NotImplemented
+        return self.name == o.name and self.instructions == o.instructions
+
+    def __repr__(self) -> str:
+        return f"Function({self.name}, {self.instructions!r})"
+
+
+class ReturnAstNode(Statement):
     def __init__(self, exp: Exp) -> None:
         self.exp = exp
         super().__init__()
 
     def __eq__(self, o: object) -> bool:
-        if not isinstance(o, ReturnAST):
+        if not isinstance(o, ReturnAstNode):
             return NotImplemented
         return self.exp == o.exp
 
@@ -84,16 +121,68 @@ class ReturnAST(Statement):
         return f"Return({self.exp!r})"
 
 
-class ConstantAST(Exp):
+class MovAssemblyConstruct(Instruction):
+    def __init__(self, src: Operand, dst: Operand) -> None:
+        self.src = src
+        self.dst = dst
+        super().__init__()
+
+    def __eq__(self, o: object) -> bool:
+        if not isinstance(o, MovAssemblyConstruct):
+            return NotImplemented
+        return self.src == o.src and self.dst == o.dst
+
+    def __repr__(self) -> str:
+        return f"Mov({self.src!r}, {self.dst!r})"
+
+
+class RetAssemblyConstruct(Instruction):
+
+    def __eq__(self, o: object) -> bool:
+        if not isinstance(o, RetAssemblyConstruct):
+            return NotImplemented
+        return f"{self!r}" == f"{o!r}"
+
+    def __repr__(self) -> str:
+        return "Ret"
+
+
+class ConstantAstNode(Exp):
 
     def __init__(self, int: int) -> None:
         self.int = int
         super().__init__()
 
     def __eq__(self, o: object) -> bool:
-        if not isinstance(o, ConstantAST):
+        if not isinstance(o, ConstantAstNode):
             return NotImplemented
         return self.int == o.int
 
     def __repr__(self) -> str:
         return f"Constant({self.int})"
+
+
+class ImmAssemblyConstruct(Operand):
+
+    def __init__(self, int: int) -> None:
+        self.int = int
+        super().__init__()
+
+    def __eq__(self, o: object) -> bool:
+        if not isinstance(o, ImmAssemblyConstruct):
+            return NotImplemented
+        return self.int == o.int
+
+    def __repr__(self) -> str:
+        return f"Imm({self.int})"
+
+
+class RegisterAssemblyConstruct(Operand):
+
+    def __eq__(self, o: object) -> bool:
+        if not isinstance(o, RegisterAssemblyConstruct):
+            return NotImplemented
+        return f"{self!r}" == f"{o!r}"
+
+    def __repr__(self) -> str:
+        return "Register"

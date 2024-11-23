@@ -19,7 +19,7 @@
 # SOFTWARE.
 
 import asdl
-import parser
+import codegen
 import unittest
 
 
@@ -27,24 +27,24 @@ class TestParser(unittest.TestCase):
     def test_listing_1_1(self) -> None:
         fn_name, int_value = "main", 2
         self.assertEqual(
-            parser.parse_program(
-                [
-                    "int",
-                    fn_name,
-                    "(",
-                    "void",
-                    ")",
-                    "{",
-                    "return",
-                    str(int_value),
-                    ";",
-                    "}",
-                ]
+            codegen.translate_program(
+                asdl.ProgramAstNode(
+                    asdl.FunctionAstNode(
+                        asdl.Identifier(fn_name),
+                        asdl.ReturnAstNode(asdl.ConstantAstNode(int_value)),
+                    )
+                )
             ),
-            asdl.ProgramAstNode(
-                asdl.FunctionAstNode(
+            asdl.ProgramAssemblyConstruct(
+                asdl.FunctionAssemblyConstruct(
                     asdl.Identifier(fn_name),
-                    asdl.ReturnAstNode(asdl.ConstantAstNode(int_value)),
+                    [
+                        asdl.MovAssemblyConstruct(
+                            asdl.ImmAssemblyConstruct(int_value),
+                            asdl.RegisterAssemblyConstruct(),
+                        ),
+                        asdl.RetAssemblyConstruct(),
+                    ],
                 )
             ),
         )

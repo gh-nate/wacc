@@ -18,37 +18,34 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from typing import cast
+
 import asdl
-import parser
-import unittest
 
 
-class TestParser(unittest.TestCase):
-    def test_listing_1_1(self) -> None:
-        fn_name, int_value = "main", 2
-        self.assertEqual(
-            parser.parse_program(
-                [
-                    "int",
-                    fn_name,
-                    "(",
-                    "void",
-                    ")",
-                    "{",
-                    "return",
-                    str(int_value),
-                    ";",
-                    "}",
-                ]
-            ),
-            asdl.ProgramAstNode(
-                asdl.FunctionAstNode(
-                    asdl.Identifier(fn_name),
-                    asdl.ReturnAstNode(asdl.ConstantAstNode(int_value)),
-                )
-            ),
-        )
+def translate_program(n: asdl.ProgramAstNode) -> asdl.ProgramAssemblyConstruct:
+    return asdl.ProgramAssemblyConstruct(
+        translate_function_definition(cast(asdl.FunctionAstNode, n.function_definition))
+    )
 
 
-if __name__ == "__main__":
-    unittest.main()
+def translate_function_definition(
+    n: asdl.FunctionAstNode,
+) -> asdl.FunctionAssemblyConstruct:
+    return asdl.FunctionAssemblyConstruct(
+        n.name, translate_return(cast(asdl.ReturnAstNode, n.body))
+    )
+
+
+def translate_return(n: asdl.ReturnAstNode) -> list[asdl.Instruction]:
+    return [
+        asdl.MovAssemblyConstruct(
+            translate_constant(cast(asdl.ConstantAstNode, n.exp)),
+            asdl.RegisterAssemblyConstruct(),
+        ),
+        asdl.RetAssemblyConstruct(),
+    ]
+
+
+def translate_constant(n: asdl.ConstantAstNode) -> asdl.ImmAssemblyConstruct:
+    return asdl.ImmAssemblyConstruct(n.int)

@@ -35,31 +35,31 @@ def expect(expected: str, tokens: list[str]) -> None:
         raise ValueError(f"Syntax error: Expected '{expected}' but got '{actual}'.")
 
 
-def parse_program(tokens: list[str]) -> asdl.ProgramAST:
-    result = asdl.ProgramAST(parse_function(tokens))
+def parse_program(tokens: list[str]) -> asdl.ProgramAstNode:
+    result = asdl.ProgramAstNode(parse_function(tokens))
     if tokens:
         raise RuntimeError(f"Syntax error: Nonempty tokens after parsing: {tokens}")
     return result
 
 
-def parse_function(tokens: list[str]) -> asdl.FunctionAST:
+def parse_function(tokens: list[str]) -> asdl.FunctionAstNode:
     expect("int", tokens)
     identifier = parse_identifier(tokens)
     for expected in ["(", "void", ")", "{"]:
         expect(expected, tokens)
     statement = parse_statement(tokens)
     expect("}", tokens)
-    return asdl.FunctionAST(identifier, statement)
+    return asdl.FunctionAstNode(identifier, statement)
 
 
-def parse_statement(tokens: list[str]) -> asdl.ReturnAST:
+def parse_statement(tokens: list[str]) -> asdl.ReturnAstNode:
     expect("return", tokens)
     return_val = parse_exp(tokens)
     expect(";", tokens)
-    return asdl.ReturnAST(return_val)
+    return asdl.ReturnAstNode(return_val)
 
 
-def parse_exp(tokens: list[str]) -> asdl.ConstantAST:
+def parse_exp(tokens: list[str]) -> asdl.ConstantAstNode:
     return parse_int(tokens)
 
 
@@ -70,5 +70,5 @@ def parse_identifier(tokens: list[str]) -> asdl.Identifier:
     return asdl.Identifier(actual)
 
 
-def parse_int(tokens: list[str]) -> asdl.ConstantAST:
-    return asdl.ConstantAST(int(take_token(tokens)))
+def parse_int(tokens: list[str]) -> asdl.ConstantAstNode:
+    return asdl.ConstantAstNode(int(take_token(tokens)))
