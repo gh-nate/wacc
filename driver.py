@@ -23,7 +23,9 @@
 from pathlib import Path
 
 import argparse
+import asdl
 import codegen
+import emit
 import lexer
 import parser
 import subprocess
@@ -52,7 +54,8 @@ ap.add_argument(
 )
 args = ap.parse_args()
 
-stem = Path(args.input_file).stem
+input_file = Path(args.input_file)
+stem = input_file.stem
 
 preprocessed_file = Path(stem + ".i")
 subprocess.run(["gcc", "-E", "-P", args.input_file, "-o", str(preprocessed_file)])
@@ -63,19 +66,24 @@ preprocessed_file.unlink()
 if args.lex:
     sys.exit()
 
+tree: asdl.ProgramAstNode | asdl.ProgramAssemblyConstruct
 tree = parser.parse_program(tokens)
 
 if args.parse:
     sys.exit()
 
-codegen.translate_program(tree)
+tree = codegen.translate_program(tree)
 
 if args.codegen:
     sys.exit()
 
+assembly_file = Path(stem + ".s")
+f = assembly_file.open("w")
+emit.output_program(tree, f)
+f.close()
+
 if args.S:
     sys.exit()
 
-assembly_file = Path(stem + ".s")
-subprocess.run(["gcc", str(assembly_file), "-o", stem])
+subprocess.run(["gcc", str(assembly_file), "-o", input_file.with_suffix("")])
 assembly_file.unlink()
