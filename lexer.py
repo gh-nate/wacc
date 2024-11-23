@@ -33,6 +33,9 @@ patterns = [
     re.compile(r"{"),
     re.compile(r"}"),
     re.compile(r";"),
+    re.compile(r"~"),
+    re.compile(r"-"),
+    re.compile(r"--"),
 ]
 
 

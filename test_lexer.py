@@ -26,22 +26,101 @@ import unittest
 
 class TestLexer(unittest.TestCase):
     def setUp(self) -> None:
-        self.source_file = Path("return_2.c")
-        with self.source_file.open("w") as f:
+        self.source_files = [
+            Path("return_2.c"),
+            Path("return_negation_bitwise_complement_2.c"),
+            Path("return_decrement_2.c"),
+            Path("return_double_negation_2.c"),
+        ]
+        # Listing 1-1
+        with self.source_files[0].open("w") as f:
             f.write(
                 """\
 int main(void) {
     return 2;
 }"""
             )
+        # Listing 2-1
+        with self.source_files[1].open("w") as f:
+            f.write(
+                """\
+int main(void) {
+    return ~(-2);
+}"""
+            )
+        # Listing 2-3
+        with self.source_files[2].open("w") as f:
+            f.write(
+                """\
+int main(void) {
+    return --2;
+}"""
+            )
+        # Listing 2-4
+        with self.source_files[3].open("w") as f:
+            f.write(
+                """\
+int main(void) {
+    return -(-2);
+}"""
+            )
 
     def tearDown(self) -> None:
-        self.source_file.unlink()
+        for f in self.source_files:
+            f.unlink()
 
     def test_listing_1_1(self) -> None:
         self.assertEqual(
-            lexer.lex(self.source_file),
+            lexer.lex(self.source_files[0]),
             ["int", "main", "(", "void", ")", "{", "return", "2", ";", "}"],
+        )
+
+    def test_listing_2_1(self) -> None:
+        self.assertEqual(
+            lexer.lex(self.source_files[1]),
+            [
+                "int",
+                "main",
+                "(",
+                "void",
+                ")",
+                "{",
+                "return",
+                "~",
+                "(",
+                "-",
+                "2",
+                ")",
+                ";",
+                "}",
+            ],
+        )
+
+    def test_listing_2_3(self) -> None:
+        self.assertEqual(
+            lexer.lex(self.source_files[2]),
+            ["int", "main", "(", "void", ")", "{", "return", "--", "2", ";", "}"],
+        )
+
+    def test_listing_2_4(self) -> None:
+        self.assertEqual(
+            lexer.lex(self.source_files[3]),
+            [
+                "int",
+                "main",
+                "(",
+                "void",
+                ")",
+                "{",
+                "return",
+                "-",
+                "(",
+                "-",
+                "2",
+                ")",
+                ";",
+                "}",
+            ],
         )
 
 
