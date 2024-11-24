@@ -49,6 +49,42 @@ class TestParser(unittest.TestCase):
             ),
         )
 
+    def test_listing_2_1(self) -> None:
+        fn_name, int_value = "main", 2
+        self.assertEqual(
+            parser.parse_program(
+                [
+                    "int",
+                    fn_name,
+                    "(",
+                    "void",
+                    ")",
+                    "{",
+                    "return",
+                    "~",
+                    "(",
+                    "-",
+                    str(int_value),
+                    ")",
+                    ";",
+                    "}",
+                ]
+            ),
+            asdl.ProgramAstNode(
+                asdl.FunctionAstNode(
+                    asdl.Identifier(fn_name),
+                    asdl.ReturnAstNode(
+                        asdl.UnaryAstNode(
+                            asdl.ComplementAstNode(),
+                            asdl.UnaryAstNode(
+                                asdl.NegateAstNode(), asdl.ConstantAstNode(int_value)
+                            ),
+                        )
+                    ),
+                )
+            ),
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

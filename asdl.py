@@ -42,6 +42,10 @@ class Exp(ABC):
     pass
 
 
+class UnaryOperator(ABC):
+    pass
+
+
 class Operand(ABC):
     pass
 
@@ -160,6 +164,44 @@ class ConstantAstNode(Exp):
 
     def __repr__(self) -> str:
         return f"Constant({self.int})"
+
+
+class UnaryAstNode(Exp):
+
+    def __init__(self, unary_operator: UnaryOperator, exp: Exp) -> None:
+        self.unary_operator = unary_operator
+        self.exp = exp
+        super().__init__()
+
+    def __eq__(self, o: object) -> bool:
+        if not isinstance(o, UnaryAstNode):
+            return NotImplemented
+        return self.unary_operator == o.unary_operator and self.exp == o.exp
+
+    def __repr__(self) -> str:
+        return f"Unary({self.unary_operator!r}, {self.exp!r})"
+
+
+class ComplementAstNode(UnaryOperator):
+
+    def __eq__(self, o: object) -> bool:
+        if not isinstance(o, ComplementAstNode):
+            return NotImplemented
+        return f"{self!r}" == f"{o!r}"
+
+    def __repr__(self) -> str:
+        return "Complement"
+
+
+class NegateAstNode(UnaryOperator):
+
+    def __eq__(self, o: object) -> bool:
+        if not isinstance(o, NegateAstNode):
+            return NotImplemented
+        return f"{self!r}" == f"{o!r}"
+
+    def __repr__(self) -> str:
+        return "Negate"
 
 
 class ImmAssemblyConstruct(Operand):

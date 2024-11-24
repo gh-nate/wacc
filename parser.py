@@ -22,6 +22,10 @@ import asdl
 import lexer
 
 
+def peek(tokens: list[str]) -> str:
+    return tokens[0]
+
+
 def take_token(tokens: list[str]) -> str:
     index = 0
     result = tokens[index]
@@ -59,8 +63,30 @@ def parse_statement(tokens: list[str]) -> asdl.ReturnAstNode:
     return asdl.ReturnAstNode(return_val)
 
 
-def parse_exp(tokens: list[str]) -> asdl.ConstantAstNode:
-    return parse_int(tokens)
+def parse_exp(tokens: list[str]) -> asdl.Exp:
+    next_token = peek(tokens)
+    if lexer.patterns[1].match(next_token):
+        return parse_int(tokens)
+    elif next_token in ["~", "-"]:
+        operator = parse_unop(tokens)
+        inner_exp = parse_exp(tokens)
+        return asdl.UnaryAstNode(operator, inner_exp)
+    elif next_token == "(":
+        take_token(tokens)
+        inner_exp = parse_exp(tokens)
+        expect(")", tokens)
+        return inner_exp
+    raise ValueError(f"Malformed expression: {next_token}")
+
+
+def parse_unop(tokens: list[str]) -> asdl.UnaryOperator:
+    actual = take_token(tokens)
+    match actual:
+        case "-":
+            return asdl.NegateAstNode()
+        case "~":
+            return asdl.ComplementAstNode()
+    raise ValueError(f"Unknown unary operator: {actual}")
 
 
 def parse_identifier(tokens: list[str]) -> asdl.Identifier:
