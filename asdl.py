@@ -42,6 +42,10 @@ class Exp(ABC):
     pass
 
 
+class Val(ABC):
+    pass
+
+
 class UnaryOperator(ABC):
     pass
 
@@ -78,6 +82,20 @@ class ProgramAssemblyConstruct(Program):
         return f"Program({self.function_definition!r})"
 
 
+class ProgramTacky(Program):
+    def __init__(self, function_definition: FunctionDefinition) -> None:
+        self.function_definition = function_definition
+        super().__init__()
+
+    def __eq__(self, o: object) -> bool:
+        if not isinstance(o, ProgramTacky):
+            raise NotImplementedError
+        return self.function_definition == o.function_definition
+
+    def __repr__(self) -> str:
+        return f"Program({self.function_definition!r})"
+
+
 Identifier = NewType("Identifier", str)
 
 
@@ -89,7 +107,7 @@ class FunctionAstNode(FunctionDefinition):
 
     def __eq__(self, o: object) -> bool:
         if not isinstance(o, FunctionAstNode):
-            return NotImplemented
+            raise NotImplementedError
         return self.name == o.name and self.body == o.body
 
     def __repr__(self) -> str:
@@ -104,11 +122,26 @@ class FunctionAssemblyConstruct(FunctionDefinition):
 
     def __eq__(self, o: object) -> bool:
         if not isinstance(o, FunctionAssemblyConstruct):
-            return NotImplemented
+            raise NotImplementedError
         return self.name == o.name and self.instructions == o.instructions
 
     def __repr__(self) -> str:
         return f"Function({self.name}, {self.instructions!r})"
+
+
+class FunctionTacky(FunctionDefinition):
+    def __init__(self, identifier: Identifier, instructions: list[Instruction]) -> None:
+        self.identifier = identifier
+        self.instructions = instructions
+        super().__init__()
+
+    def __eq__(self, o: object) -> bool:
+        if not isinstance(o, FunctionTacky):
+            raise NotImplementedError
+        return self.identifier == o.identifier and self.instructions == o.instructions
+
+    def __repr__(self) -> str:
+        return f"Function({self.identifier}, {self.instructions!r})"
 
 
 class ReturnAstNode(Statement):
@@ -118,7 +151,7 @@ class ReturnAstNode(Statement):
 
     def __eq__(self, o: object) -> bool:
         if not isinstance(o, ReturnAstNode):
-            return NotImplemented
+            raise NotImplementedError
         return self.exp == o.exp
 
     def __repr__(self) -> str:
@@ -133,7 +166,7 @@ class MovAssemblyConstruct(Instruction):
 
     def __eq__(self, o: object) -> bool:
         if not isinstance(o, MovAssemblyConstruct):
-            return NotImplemented
+            raise NotImplementedError
         return self.src == o.src and self.dst == o.dst
 
     def __repr__(self) -> str:
@@ -141,25 +174,55 @@ class MovAssemblyConstruct(Instruction):
 
 
 class RetAssemblyConstruct(Instruction):
-
     def __eq__(self, o: object) -> bool:
         if not isinstance(o, RetAssemblyConstruct):
-            return NotImplemented
+            raise NotImplementedError
         return f"{self!r}" == f"{o!r}"
 
     def __repr__(self) -> str:
         return "Ret"
 
 
-class ConstantAstNode(Exp):
+class ReturnTacky(Instruction):
+    def __init__(self, val: Val) -> None:
+        self.val = val
 
+    def __eq__(self, o: object) -> bool:
+        if not isinstance(o, ReturnTacky):
+            raise NotImplementedError
+        return self.val == o.val
+
+    def __repr__(self) -> str:
+        return f"Return({self.val!r})"
+
+
+class UnaryTacky(Instruction):
+    def __init__(self, unary_operator: UnaryOperator, src: Val, dst, Val) -> None:
+        self.unary_operator = unary_operator
+        self.src = src
+        self.dst = dst
+
+    def __eq__(self, o: object) -> bool:
+        if not isinstance(o, UnaryTacky):
+            raise NotImplementedError
+        return (
+            self.unary_operator == o.unary_operator
+            and self.src == o.src
+            and self.dst == o.dst
+        )
+
+    def __repr__(self) -> str:
+        return f"Unary({self.unary_operator!r}, {self.src!r}, {self.dst!r})"
+
+
+class ConstantAstNode(Exp):
     def __init__(self, int: int) -> None:
         self.int = int
         super().__init__()
 
     def __eq__(self, o: object) -> bool:
         if not isinstance(o, ConstantAstNode):
-            return NotImplemented
+            raise NotImplementedError
         return self.int == o.int
 
     def __repr__(self) -> str:
@@ -167,7 +230,6 @@ class ConstantAstNode(Exp):
 
 
 class UnaryAstNode(Exp):
-
     def __init__(self, unary_operator: UnaryOperator, exp: Exp) -> None:
         self.unary_operator = unary_operator
         self.exp = exp
@@ -175,7 +237,7 @@ class UnaryAstNode(Exp):
 
     def __eq__(self, o: object) -> bool:
         if not isinstance(o, UnaryAstNode):
-            return NotImplemented
+            raise NotImplementedError
         return self.unary_operator == o.unary_operator and self.exp == o.exp
 
     def __repr__(self) -> str:
@@ -183,10 +245,9 @@ class UnaryAstNode(Exp):
 
 
 class ComplementAstNode(UnaryOperator):
-
     def __eq__(self, o: object) -> bool:
         if not isinstance(o, ComplementAstNode):
-            return NotImplemented
+            raise NotImplementedError
         return f"{self!r}" == f"{o!r}"
 
     def __repr__(self) -> str:
@@ -194,10 +255,9 @@ class ComplementAstNode(UnaryOperator):
 
 
 class NegateAstNode(UnaryOperator):
-
     def __eq__(self, o: object) -> bool:
         if not isinstance(o, NegateAstNode):
-            return NotImplemented
+            raise NotImplementedError
         return f"{self!r}" == f"{o!r}"
 
     def __repr__(self) -> str:
@@ -205,14 +265,13 @@ class NegateAstNode(UnaryOperator):
 
 
 class ImmAssemblyConstruct(Operand):
-
     def __init__(self, int: int) -> None:
         self.int = int
         super().__init__()
 
     def __eq__(self, o: object) -> bool:
         if not isinstance(o, ImmAssemblyConstruct):
-            return NotImplemented
+            raise NotImplementedError
         return self.int == o.int
 
     def __repr__(self) -> str:
@@ -220,11 +279,58 @@ class ImmAssemblyConstruct(Operand):
 
 
 class RegisterAssemblyConstruct(Operand):
-
     def __eq__(self, o: object) -> bool:
         if not isinstance(o, RegisterAssemblyConstruct):
-            return NotImplemented
+            raise NotImplementedError
         return f"{self!r}" == f"{o!r}"
 
     def __repr__(self) -> str:
         return "Register"
+
+
+class ConstantTacky(Val):
+    def __init__(self, int: int) -> None:
+        self.int = int
+        super().__init__()
+
+    def __eq__(self, o: object) -> bool:
+        if not isinstance(o, ConstantTacky):
+            raise NotImplementedError
+        return self.int == o.int
+
+    def __repr__(self) -> str:
+        return f"Constant({self.int})"
+
+
+class VarTacky(Val):
+    def __init__(self, identifier: Identifier) -> None:
+        self.identifier = identifier
+        super().__init__()
+
+    def __eq__(self, o: object) -> bool:
+        if not isinstance(o, VarTacky):
+            raise NotImplementedError
+        return self.identifier == o.identifier
+
+    def __repr__(self) -> str:
+        return f"Constant({self.identifier})"
+
+
+class ComplementTacky(UnaryOperator):
+    def __eq__(self, o: object) -> bool:
+        if not isinstance(o, ComplementTacky):
+            raise NotImplementedError
+        return f"{self!r}" == f"{o!r}"
+
+    def __repr__(self) -> str:
+        return "Complement"
+
+
+class NegateTacky(UnaryOperator):
+    def __eq__(self, o: object) -> bool:
+        if not isinstance(o, NegateTacky):
+            raise NotImplementedError
+        return f"{self!r}" == f"{o!r}"
+
+    def __repr__(self) -> str:
+        return "Negate"
