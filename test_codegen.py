@@ -23,7 +23,7 @@ import codegen
 import unittest
 
 
-class TestParser(unittest.TestCase):
+class TestCodegen(unittest.TestCase):
     def test_listing_1_1(self) -> None:
         fn_name, int_value = "main", 2
         self.assertEqual(

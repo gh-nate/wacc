@@ -25,7 +25,7 @@ import platform
 import unittest
 
 
-class TestParser(unittest.TestCase):
+class TestEmit(unittest.TestCase):
     def test_listing_1_1(self) -> None:
         fn_name, int_value = "main", 2
         f = io.StringIO()
@@ -46,9 +46,12 @@ class TestParser(unittest.TestCase):
         )
         system = platform.system()
         name = f"_{fn_name}" if system == "Darwin" else fn_name
+        exec_stack = (
+            '.section .note.GNU-stack,"",@progbits\n' if system == "Linux" else ""
+        )
         self.assertEqual(
             f.getvalue(),
-            f"\t.globl {name}\n{name}:\n\tmovl\t${int_value}, %eax\n\tret\n",
+            f"\t.globl {name}\n{name}:\n\tmovl\t${int_value}, %eax\n\tret\n{exec_stack}",
         )
 
 
