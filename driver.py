@@ -23,13 +23,13 @@
 from pathlib import Path
 
 import argparse
-import asdl
 import codegen
 import emit
 import lexer
 import parser
 import subprocess
 import sys
+import tacky
 
 COMMON_ACTION = "store_true"
 ap = argparse.ArgumentParser()
@@ -45,7 +45,12 @@ ap.add_argument(
 ap.add_argument(
     "--parse",
     action=COMMON_ACTION,
-    help="run the lexer and parser, but stop before assembly generation",
+    help="run the lexer and parser, but stop before tacky generation",
+)
+ap.add_argument(
+    "--tacky",
+    action=COMMON_ACTION,
+    help="run the lexer, parser and tacky generator, but stop before assembly generation",
 )
 ap.add_argument(
     "--codegen",
@@ -66,20 +71,24 @@ preprocessed_file.unlink()
 if args.lex:
     sys.exit()
 
-tree: asdl.ProgramAstNode | asdl.ProgramAssemblyConstruct
-tree = parser.parse_program(tokens)
+ast_tree = parser.parse_program(tokens)
 
 if args.parse:
     sys.exit()
 
-tree = codegen.translate_program(tree)
+tacky.translate_program(ast_tree)
+
+if args.tacky:
+    sys.exit()
+
+assembly_construct_tree = codegen.translate_program(ast_tree)
 
 if args.codegen:
     sys.exit()
 
 assembly_file = Path(stem + ".s")
 f = assembly_file.open("w")
-emit.output_program(tree, f)
+emit.output_program(assembly_construct_tree, f)
 f.close()
 
 if args.S:
