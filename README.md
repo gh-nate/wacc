@@ -1,0 +1,2 @@
+- Based on https://nostarch.com/writing-c-compiler
+- Passes https://github.com/nlsandler/writing-a-c-compiler-tests
