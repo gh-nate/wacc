@@ -19,6 +19,7 @@ from pathlib import Path
 
 import argparse
 import lexer
+import parser
 import subprocess
 import sys
 
@@ -38,10 +39,11 @@ with preprocessed_file.open() as f:
     s = f.read()
 preprocessed_file.unlink()
 
-lexer.tokenize(s)
+tokens = lexer.tokenize(s)
 if arguments.lex:
     sys.exit()
 
+parser.parse(tokens)
 if arguments.parse:
     sys.exit()
 
