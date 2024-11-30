@@ -26,6 +26,20 @@ class ConstantAST(Exp):
     i: int
 
 
+class Operand(ABC):
+    pass
+
+
+@dataclass
+class ImmAC(Operand):
+    i: int
+
+
+class RegisterAC(Operand):
+    def __eq__(self, o):
+        return isinstance(o, RegisterAC)
+
+
 class Statement(ABC):
     pass
 
@@ -33,6 +47,21 @@ class Statement(ABC):
 @dataclass
 class ReturnAST(Statement):
     exp: Exp
+
+
+class Instruction(ABC):
+    pass
+
+
+@dataclass
+class MovAC(Instruction):
+    src: Operand
+    dst: Operand
+
+
+class RetAC(Instruction):
+    def __eq__(self, o):
+        return isinstance(o, RetAC)
 
 
 class FunctionDefinition(ABC):
@@ -45,6 +74,12 @@ class FunctionAST(FunctionDefinition):
     body: Statement
 
 
+@dataclass
+class FunctionAC(FunctionDefinition):
+    name: str
+    instructions: list[Instruction]
+
+
 class Program(ABC):
     pass
 
@@ -52,3 +87,8 @@ class Program(ABC):
 @dataclass
 class ProgramAST(Program):
     function_definition: FunctionDefinition
+
+
+@dataclass
+class ProgramAC(Program):
+    function_definition: FunctionAC

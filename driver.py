@@ -18,6 +18,7 @@
 from pathlib import Path
 
 import argparse
+import codegen
 import lexer
 import parser
 import subprocess
@@ -43,10 +44,11 @@ tokens = lexer.tokenize(s)
 if arguments.lex:
     sys.exit()
 
-parser.parse(tokens)
+tree = parser.parse(tokens)
 if arguments.parse:
     sys.exit()
 
+codegen.convert(tree)
 if arguments.codegen:
     sys.exit()
 
