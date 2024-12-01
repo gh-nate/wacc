@@ -24,12 +24,14 @@ import lexer
 import parser
 import subprocess
 import sys
+import tacky
 
 argument_parser = argparse.ArgumentParser()
 COMMON_ACTION = "store_true"
 argument_parser.add_argument("input_file")
 argument_parser.add_argument("--lex", action=COMMON_ACTION)
 argument_parser.add_argument("--parse", action=COMMON_ACTION)
+argument_parser.add_argument("--tacky", action=COMMON_ACTION)
 argument_parser.add_argument("--codegen", action=COMMON_ACTION)
 argument_parser.add_argument("-S", action=COMMON_ACTION)
 arguments = argument_parser.parse_args()
@@ -47,6 +49,10 @@ if arguments.lex:
 
 ast_tree = parser.parse(tokens)
 if arguments.parse:
+    sys.exit()
+
+tacky_tree = tacky.convert(ast_tree)
+if arguments.tacky:
     sys.exit()
 
 asm_tree = codegen.convert(ast_tree)

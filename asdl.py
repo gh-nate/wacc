@@ -31,6 +31,16 @@ class NegateAST(UnaryOperator):
         return isinstance(o, NegateAST)
 
 
+class ComplementTACKY(UnaryOperator):
+    def __eq__(self, o):
+        return isinstance(o, ComplementTACKY)
+
+
+class NegateTACKY(UnaryOperator):
+    def __eq__(self, o):
+        return isinstance(o, NegateTACKY)
+
+
 class Exp(ABC):
     pass
 
@@ -44,6 +54,20 @@ class ConstantAST(Exp):
 class UnaryAST(Exp):
     unary_operator: UnaryOperator
     exp: Exp
+
+
+class Val(ABC):
+    pass
+
+
+@dataclass
+class ConstantTACKY(Val):
+    i: int
+
+
+@dataclass
+class VarTACKY(Val):
+    identifier: str
 
 
 class Operand(ABC):
@@ -84,6 +108,18 @@ class RetAC(Instruction):
         return isinstance(o, RetAC)
 
 
+@dataclass
+class ReturnTACKY(Instruction):
+    val: Val
+
+
+@dataclass
+class UnaryTACKY(Instruction):
+    unary_operator: UnaryOperator
+    src: Val
+    dst: Val
+
+
 class FunctionDefinition(ABC):
     pass
 
@@ -100,6 +136,12 @@ class FunctionAC(FunctionDefinition):
     instructions: list[Instruction]
 
 
+@dataclass
+class FunctionTACKY(FunctionDefinition):
+    identifier: str
+    body: list[Instruction]
+
+
 class Program(ABC):
     pass
 
@@ -111,4 +153,9 @@ class ProgramAST(Program):
 
 @dataclass
 class ProgramAC(Program):
-    function_definition: FunctionAC
+    function_definition: FunctionDefinition
+
+
+@dataclass
+class ProgramTACKY(Program):
+    function_definition: FunctionDefinition
