@@ -26,6 +26,9 @@ token_patterns = {
     "open brace": re.compile(r"{"),
     "close brace": re.compile(r"}"),
     "semicolon": re.compile(r";"),
+    "bitwise complement operator": re.compile(r"~"),
+    "negation operator": re.compile(r"-"),
+    "decrement operator": re.compile(r"--"),
 }
 
 

@@ -22,7 +22,22 @@ class TestLexer(unittest.TestCase):
     def test_tokenize(self):
         n = str(random.randint(0, 255))
         s = "int main(void) {\n\treturn " + n + ";\n}\n"
-        expected = ["int", "main", "(", "void", ")", "{", "return", n, ";", "}"]
+
+        common_prefix = ["int", "main", "(", "void", ")", "{", "return"]
+        common_suffix = [";", "}"]
+        expected = common_prefix + [n] + common_suffix
+        self.assertEqual(lexer.tokenize(s), expected)
+
+        s = "int main(void) {\n\treturn ~(-" + n + ");\n}\n"
+        expected = common_prefix + ["~", "(", "-", n, ")"] + common_suffix
+        self.assertEqual(lexer.tokenize(s), expected)
+
+        s = "int main(void) {\n\treturn --" + n + ";\n}\n"
+        expected = common_prefix + ["--", n] + common_suffix
+        self.assertEqual(lexer.tokenize(s), expected)
+
+        s = "int main(void) {\n\treturn -(-" + n + ");\n}\n"
+        expected = common_prefix + ["-", "(", "-", n, ")"] + common_suffix
         self.assertEqual(lexer.tokenize(s), expected)
 
 
