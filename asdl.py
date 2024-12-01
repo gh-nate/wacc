@@ -17,6 +17,20 @@ from abc import ABC
 from dataclasses import dataclass
 
 
+class UnaryOperator(ABC):
+    pass
+
+
+class ComplementAST(UnaryOperator):
+    def __eq__(self, o):
+        return isinstance(o, ComplementAST)
+
+
+class NegateAST(UnaryOperator):
+    def __eq__(self, o):
+        return isinstance(o, NegateAST)
+
+
 class Exp(ABC):
     pass
 
@@ -24,6 +38,12 @@ class Exp(ABC):
 @dataclass
 class ConstantAST(Exp):
     i: int
+
+
+@dataclass
+class UnaryAST(Exp):
+    unary_operator: UnaryOperator
+    exp: Exp
 
 
 class Operand(ABC):

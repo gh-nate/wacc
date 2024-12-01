@@ -21,11 +21,40 @@ import unittest
 
 class TestParser(unittest.TestCase):
     def test_parse(self):
-        n = random.randint(0, 255)
         name = "main"
-        tokens = ["int", name, "(", "void", ")", "{", "return", str(n), ";", "}"]
+        common_prefix = ["int", name, "(", "void", ")", "{", "return"]
+        common_suffix = [";", "}"]
+        n = random.randint(0, 255)
+        constant = asdl.ConstantAST(n)
+        n = str(n)
+
+        tokens = common_prefix + [n] + common_suffix
+        expected = asdl.ProgramAST(asdl.FunctionAST(name, asdl.ReturnAST(constant)))
+        self.assertEqual(parser.parse(tokens), expected)
+
+        tokens = common_prefix + ["~", "(", "-", n, ")"] + common_suffix
+        negate = asdl.NegateAST()
+        unary_negate_constant = asdl.UnaryAST(negate, constant)
         expected = asdl.ProgramAST(
-            asdl.FunctionAST(name, asdl.ReturnAST(asdl.ConstantAST(n)))
+            asdl.FunctionAST(
+                name,
+                asdl.ReturnAST(
+                    asdl.UnaryAST(asdl.ComplementAST(), unary_negate_constant)
+                ),
+            )
+        )
+        self.assertEqual(parser.parse(tokens), expected)
+
+        tokens = common_prefix + ["--", n] + common_suffix
+        with self.assertRaises(ValueError):
+            parser.parse(tokens)
+
+        tokens = common_prefix + ["-", "(", "-", n, ")"] + common_suffix
+        expected = asdl.ProgramAST(
+            asdl.FunctionAST(
+                name,
+                asdl.ReturnAST(asdl.UnaryAST(negate, unary_negate_constant)),
+            )
         )
         self.assertEqual(parser.parse(tokens), expected)
 

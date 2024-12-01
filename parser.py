@@ -29,6 +29,10 @@ def expect(expected, tokens):
         raise ValueError(f"Syntax error: Expected '{expected}' but got '{actual}'")
 
 
+def peek(tokens):
+    return tokens[0]
+
+
 def parse(tokens):
     program = parse_program(tokens)
     if tokens:
@@ -60,7 +64,28 @@ def parse_statement(tokens):
 
 
 def parse_exp(tokens):
-    key, i = "constant", take_token(tokens)
-    if not lexer.token_patterns[key].match(i):
-        raise ValueError(f"Syntax error: '{i}' is not a valid {key}")
-    return asdl.ConstantAST(int(i))
+    key, next_token = "constant", peek(tokens)
+    if lexer.token_patterns[key].match(next_token):
+        take_token(tokens)
+        return asdl.ConstantAST(int(next_token))
+    elif next_token in ["~", "-"]:
+        operator = parse_unop(tokens)
+        inner_exp = parse_exp(tokens)
+        return asdl.UnaryAST(operator, inner_exp)
+    elif next_token == "(":
+        take_token(tokens)
+        inner_exp = parse_exp(tokens)
+        expect(")", tokens)
+        return inner_exp
+    else:
+        raise ValueError(f"Syntax error: Malformed expression: {tokens}")
+
+
+def parse_unop(tokens):
+    match token := take_token(tokens):
+        case "~":
+            return asdl.ComplementAST()
+        case "-":
+            return asdl.NegateAST()
+        case _:
+            raise ValueError(f"Syntax error: Unknown unary operator '{token}'")
