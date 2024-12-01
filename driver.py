@@ -19,6 +19,7 @@ from pathlib import Path
 
 import argparse
 import codegen
+import emit
 import lexer
 import parser
 import subprocess
@@ -44,18 +45,23 @@ tokens = lexer.tokenize(s)
 if arguments.lex:
     sys.exit()
 
-tree = parser.parse(tokens)
+ast_tree = parser.parse(tokens)
 if arguments.parse:
     sys.exit()
 
-codegen.convert(tree)
+asm_tree = codegen.convert(ast_tree)
 if arguments.codegen:
     sys.exit()
+
+code = emit.output(asm_tree)
+
+assembly_file = input_file.with_suffix(".s")
+with assembly_file.open("w") as f:
+    f.write(code)
 
 if arguments.S:
     sys.exit()
 
-assembly_file = input_file.with_suffix(".s")
 output_file = input_file.with_suffix("")
 subprocess.run(["gcc", str(assembly_file), "-o", str(output_file)])
 assembly_file.unlink()
