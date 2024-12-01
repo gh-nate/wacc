@@ -46,19 +46,19 @@ def output_function(node, s):
 def output_instructions(instructions, s):
     for instruction in instructions:
         match instruction:
-            case asdl.MovAC(src, dst):
+            case asdl.MovASM(src, dst):
                 s.write("\tmovl ")
                 src = output_operand(src, s)
                 s.write(", ")
                 dst = output_operand(dst, s)
                 s.write("\n")
-            case asdl.RetAC():
+            case asdl.RetASM():
                 print("\tret", file=s)
 
 
 def output_operand(node, s):
     match node:
-        case asdl.RegisterAC():
+        case asdl.RegisterASM():
             s.write("%eax")
-        case asdl.ImmAC(i):
+        case asdl.ImmASM(i):
             s.write(f"${i}")

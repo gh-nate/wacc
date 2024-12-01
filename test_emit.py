@@ -23,9 +23,9 @@ class TestEmit(unittest.TestCase):
     def test_output(self):
         n = str(random.randint(0, 255))
         name = "main"
-        asm_ast = asdl.ProgramAC(
-            asdl.FunctionAC(
-                name, [asdl.MovAC(asdl.ImmAC(n), asdl.RegisterAC()), asdl.RetAC()]
+        asm_ast = asdl.ProgramASM(
+            asdl.FunctionASM(
+                name, [asdl.MovASM(asdl.ImmASM(n), asdl.RegisterASM()), asdl.RetASM()]
             )
         )
         if emit.SYSTEM == "Darwin":

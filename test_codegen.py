@@ -26,9 +26,9 @@ class TestCodegen(unittest.TestCase):
         ast_tree = asdl.ProgramAST(
             asdl.FunctionAST(name, asdl.ReturnAST(asdl.ConstantAST(n)))
         )
-        asm_ast = asdl.ProgramAC(
-            asdl.FunctionAC(
-                name, [asdl.MovAC(asdl.ImmAC(n), asdl.RegisterAC()), asdl.RetAC()]
+        asm_ast = asdl.ProgramASM(
+            asdl.FunctionASM(
+                name, [asdl.MovASM(asdl.ImmASM(n), asdl.RegisterASM()), asdl.RetASM()]
             )
         )
         self.assertEqual(codegen.convert(ast_tree), asm_ast)

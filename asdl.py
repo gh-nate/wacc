@@ -75,13 +75,13 @@ class Operand(ABC):
 
 
 @dataclass
-class ImmAC(Operand):
+class ImmASM(Operand):
     i: int
 
 
-class RegisterAC(Operand):
+class RegisterASM(Operand):
     def __eq__(self, o):
-        return isinstance(o, RegisterAC)
+        return isinstance(o, RegisterASM)
 
 
 class Statement(ABC):
@@ -98,14 +98,14 @@ class Instruction(ABC):
 
 
 @dataclass
-class MovAC(Instruction):
+class MovASM(Instruction):
     src: Operand
     dst: Operand
 
 
-class RetAC(Instruction):
+class RetASM(Instruction):
     def __eq__(self, o):
-        return isinstance(o, RetAC)
+        return isinstance(o, RetASM)
 
 
 @dataclass
@@ -131,7 +131,7 @@ class FunctionAST(FunctionDefinition):
 
 
 @dataclass
-class FunctionAC(FunctionDefinition):
+class FunctionASM(FunctionDefinition):
     name: str
     instructions: list[Instruction]
 
@@ -152,7 +152,7 @@ class ProgramAST(Program):
 
 
 @dataclass
-class ProgramAC(Program):
+class ProgramASM(Program):
     function_definition: FunctionDefinition
 
 

@@ -17,23 +17,23 @@ import asdl
 
 
 def convert(tree):
-    return convert_ProgramAST_to_ProgramAC(tree)
+    return convert_program(tree)
 
 
-def convert_ProgramAST_to_ProgramAC(node):
-    return asdl.ProgramAC(convert_FunctionAST_to_FunctionAC(node.function_definition))
+def convert_program(node):
+    return asdl.ProgramASM(convert_function(node.function_definition))
 
 
-def convert_FunctionAST_to_FunctionAC(node):
-    return asdl.FunctionAC(node.name, convert_ReturnAST_to_Instructions(node.body))
+def convert_function(node):
+    return asdl.FunctionASM(node.name, convert_return(node.body))
 
 
-def convert_ReturnAST_to_Instructions(node):
+def convert_return(node):
     return [
-        asdl.MovAC(convert_ConstantAST_to_ImmAC(node.exp), asdl.RegisterAC()),
-        asdl.RetAC(),
+        asdl.MovASM(convert_constant(node.exp), asdl.RegisterASM()),
+        asdl.RetASM(),
     ]
 
 
-def convert_ConstantAST_to_ImmAC(node):
-    return asdl.ImmAC(node.i)
+def convert_constant(node):
+    return asdl.ImmASM(node.i)
