@@ -55,7 +55,7 @@ tacky_tree = tacky.convert(ast_tree)
 if arguments.tacky:
     sys.exit()
 
-asm_tree = codegen.convert(ast_tree)
+asm_tree = codegen.convert(tacky_tree)
 if arguments.codegen:
     sys.exit()
 
