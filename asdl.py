@@ -41,6 +41,16 @@ class NegateTACKY(UnaryOperator):
         return isinstance(o, NegateTACKY)
 
 
+class NegASM(UnaryOperator):
+    def __eq__(self, o):
+        return isinstance(o, NegASM)
+
+
+class NotASM(UnaryOperator):
+    def __eq__(self, o):
+        return isinstance(o, NotASM)
+
+
 class Exp(ABC):
     pass
 
@@ -79,9 +89,33 @@ class ImmASM(Operand):
     i: int
 
 
-class RegisterASM(Operand):
+class Reg(ABC):
+    pass
+
+
+class AxASM(Reg):
     def __eq__(self, o):
-        return isinstance(o, RegisterASM)
+        return isinstance(o, AxASM)
+
+
+class R10ASM(Reg):
+    def __eq__(self, o):
+        return isinstance(o, R10ASM)
+
+
+@dataclass
+class RegASM(Operand):
+    reg: Reg
+
+
+@dataclass
+class PseudoASM(Operand):
+    identifier: str
+
+
+@dataclass
+class StackASM(Operand):
+    i: int
 
 
 class Statement(ABC):
@@ -101,6 +135,17 @@ class Instruction(ABC):
 class MovASM(Instruction):
     src: Operand
     dst: Operand
+
+
+@dataclass
+class UnaryASM(Instruction):
+    unary_operator: UnaryOperator
+    operand: Operand
+
+
+@dataclass
+class AllocateStackASM(Instruction):
+    i: int
 
 
 class RetASM(Instruction):
