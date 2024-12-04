@@ -29,6 +29,10 @@ token_patterns = {
     "bitwise complement operator": re.compile(r"~"),
     "negation operator": re.compile(r"-"),
     "decrement operator": re.compile(r"--"),
+    "addition operator": re.compile(r"\+"),
+    "multiplication operator": re.compile(r"\*"),
+    "division operator": re.compile(r"/"),
+    "remainder operator": re.compile(r"%"),
 }
 
 
