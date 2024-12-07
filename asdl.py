@@ -80,6 +80,31 @@ class RemainderAST(BinaryOperator):
         return isinstance(o, RemainderAST)
 
 
+class AddTACKY(BinaryOperator):
+    def __eq__(self, o):
+        return isinstance(o, AddTACKY)
+
+
+class SubtractTACKY(BinaryOperator):
+    def __eq__(self, o):
+        return isinstance(o, SubtractTACKY)
+
+
+class MultiplyTACKY(BinaryOperator):
+    def __eq__(self, o):
+        return isinstance(o, MultiplyTACKY)
+
+
+class DivideTACKY(BinaryOperator):
+    def __eq__(self, o):
+        return isinstance(o, DivideTACKY)
+
+
+class RemainderTACKY(BinaryOperator):
+    def __eq__(self, o):
+        return isinstance(o, RemainderTACKY)
+
+
 class Exp(ABC):
     pass
 
@@ -198,6 +223,14 @@ class ReturnTACKY(Instruction):
 class UnaryTACKY(Instruction):
     unary_operator: UnaryOperator
     src: Val
+    dst: Val
+
+
+@dataclass
+class BinaryTACKY(Instruction):
+    binary_operator: BinaryOperator
+    src1: Val
+    src2: Val
     dst: Val
 
 
