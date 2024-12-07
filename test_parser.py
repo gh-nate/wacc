@@ -58,6 +58,62 @@ class TestParser(unittest.TestCase):
         )
         self.assertEqual(parser.parse(tokens), expected)
 
+    def test_parse_exp(self):
+        add_ast, mul_ast = asdl.AddAST(), asdl.MultiplyAST()
+        c1_ast, c2_ast, c3_ast = (
+            asdl.ConstantAST(1),
+            asdl.ConstantAST(2),
+            asdl.ConstantAST(3),
+        )
+
+        self.assertEqual(
+            parser.parse_exp(["1", "+", "(", "2", "*", "3", ")", ";"]),
+            asdl.BinaryAST(
+                add_ast,
+                c1_ast,
+                asdl.BinaryAST(mul_ast, c2_ast, c3_ast),
+            ),
+        )
+
+        self.assertEqual(
+            parser.parse_exp(["(", "1", "+", "2", ")", "*", "3", ";"]),
+            asdl.BinaryAST(
+                mul_ast,
+                asdl.BinaryAST(add_ast, c1_ast, c2_ast),
+                c3_ast,
+            ),
+        )
+
+        c4_ast = asdl.ConstantAST(4)
+
+        self.assertEqual(
+            parser.parse_exp(["1", "+", "2", "*", "3", "+", "4", ";"]),
+            asdl.BinaryAST(
+                add_ast,
+                asdl.BinaryAST(
+                    add_ast,
+                    c1_ast,
+                    asdl.BinaryAST(mul_ast, c2_ast, c3_ast),
+                ),
+                c4_ast,
+            ),
+        )
+
+        self.assertEqual(
+            parser.parse_exp(
+                ["1", "*", "2", "-", "3", "*", "(", "4", "+", "5", ")", ";"]
+            ),
+            asdl.BinaryAST(
+                asdl.SubtractAST(),
+                asdl.BinaryAST(mul_ast, c1_ast, c2_ast),
+                asdl.BinaryAST(
+                    mul_ast,
+                    c3_ast,
+                    asdl.BinaryAST(add_ast, c4_ast, asdl.ConstantAST(5)),
+                ),
+            ),
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

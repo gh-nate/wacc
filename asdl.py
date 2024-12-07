@@ -51,6 +51,35 @@ class NotASM(UnaryOperator):
         return isinstance(o, NotASM)
 
 
+class BinaryOperator(ABC):
+    pass
+
+
+class AddAST(BinaryOperator):
+    def __eq__(self, o):
+        return isinstance(o, AddAST)
+
+
+class SubtractAST(BinaryOperator):
+    def __eq__(self, o):
+        return isinstance(o, SubtractAST)
+
+
+class MultiplyAST(BinaryOperator):
+    def __eq__(self, o):
+        return isinstance(o, MultiplyAST)
+
+
+class DivideAST(BinaryOperator):
+    def __eq__(self, o):
+        return isinstance(o, DivideAST)
+
+
+class RemainderAST(BinaryOperator):
+    def __eq__(self, o):
+        return isinstance(o, RemainderAST)
+
+
 class Exp(ABC):
     pass
 
@@ -64,6 +93,13 @@ class ConstantAST(Exp):
 class UnaryAST(Exp):
     unary_operator: UnaryOperator
     exp: Exp
+
+
+@dataclass
+class BinaryAST(Exp):
+    binary_operator: BinaryOperator
+    lhs: Exp
+    rhs: Exp
 
 
 class Val(ABC):
