@@ -105,6 +105,21 @@ class RemainderTACKY(BinaryOperator):
         return isinstance(o, RemainderTACKY)
 
 
+class AddASM(BinaryOperator):
+    def __eq__(self, o):
+        return isinstance(o, AddASM)
+
+
+class SubASM(BinaryOperator):
+    def __eq__(self, o):
+        return isinstance(o, SubASM)
+
+
+class MultASM(BinaryOperator):
+    def __eq__(self, o):
+        return isinstance(o, MultASM)
+
+
 class Exp(ABC):
     pass
 
@@ -159,9 +174,19 @@ class AxASM(Reg):
         return isinstance(o, AxASM)
 
 
+class DxASM(Reg):
+    def __eq__(self, o):
+        return isinstance(o, DxASM)
+
+
 class R10ASM(Reg):
     def __eq__(self, o):
         return isinstance(o, R10ASM)
+
+
+class R11ASM(Reg):
+    def __eq__(self, o):
+        return isinstance(o, R11ASM)
 
 
 @dataclass
@@ -202,6 +227,23 @@ class MovASM(Instruction):
 class UnaryASM(Instruction):
     unary_operator: UnaryOperator
     operand: Operand
+
+
+@dataclass
+class BinaryASM(Instruction):
+    binary_operator: BinaryOperator
+    lhs: Operand
+    rhs: Operand
+
+
+@dataclass
+class IdivASM(Instruction):
+    operand: Operand
+
+
+class CdqASM(Instruction):
+    def __eq__(self, o):
+        return isinstance(o, CdqASM)
 
 
 @dataclass
