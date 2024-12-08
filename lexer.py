@@ -33,6 +33,15 @@ token_patterns = {
     "multiplication operator": re.compile(r"\*"),
     "division operator": re.compile(r"/"),
     "remainder operator": re.compile(r"%"),
+    "logical NOT operator": re.compile(r"!"),
+    "logical AND operator": re.compile(r"&&"),
+    "logical OR operator": re.compile(r"\|\|"),
+    "equal to operator": re.compile(r"=="),
+    "not equal to operator": re.compile(r"!="),
+    "less than operator": re.compile(r"<"),
+    "greater than operator": re.compile(r">"),
+    "less than or equal to operator": re.compile(r"<="),
+    "greater than or equal to operator": re.compile(r">="),
 }
 
 
