@@ -31,6 +31,11 @@ class NegateAST(UnaryOperator):
         return isinstance(o, NegateAST)
 
 
+class NotAST(UnaryOperator):
+    def __eq__(self, o):
+        return isinstance(o, NotAST)
+
+
 class ComplementTACKY(UnaryOperator):
     def __eq__(self, o):
         return isinstance(o, ComplementTACKY)
@@ -78,6 +83,46 @@ class DivideAST(BinaryOperator):
 class RemainderAST(BinaryOperator):
     def __eq__(self, o):
         return isinstance(o, RemainderAST)
+
+
+class AndAST(BinaryOperator):
+    def __eq__(self, o):
+        return isinstance(o, AndAST)
+
+
+class OrAST(BinaryOperator):
+    def __eq__(self, o):
+        return isinstance(o, OrAST)
+
+
+class EqualAST(BinaryOperator):
+    def __eq__(self, o):
+        return isinstance(o, EqualAST)
+
+
+class NotEqualAST(BinaryOperator):
+    def __eq__(self, o):
+        return isinstance(o, NotEqualAST)
+
+
+class LessThanAST(BinaryOperator):
+    def __eq__(self, o):
+        return isinstance(o, LessThanAST)
+
+
+class LessOrEqualAST(BinaryOperator):
+    def __eq__(self, o):
+        return isinstance(o, LessOrEqualAST)
+
+
+class GreaterThanAST(BinaryOperator):
+    def __eq__(self, o):
+        return isinstance(o, GreaterThanAST)
+
+
+class GreaterOrEqualAST(BinaryOperator):
+    def __eq__(self, o):
+        return isinstance(o, GreaterOrEqualAST)
 
 
 class AddTACKY(BinaryOperator):

@@ -69,6 +69,14 @@ precedence = {
     "%": 50,
     "+": 45,
     "-": 45,
+    "<": 35,
+    "<=": 35,
+    ">": 35,
+    ">=": 35,
+    "==": 30,
+    "!=": 30,
+    "&&": 10,
+    "||": 5,
 }
 
 
@@ -88,7 +96,7 @@ def parse_factor(tokens):
     if lexer.token_patterns[key].match(next_token):
         take_token(tokens)
         return asdl.ConstantAST(int(next_token))
-    elif next_token in ["~", "-"]:
+    elif next_token in ["~", "-", "!"]:
         operator = parse_unop(tokens)
         inner_exp = parse_factor(tokens)
         return asdl.UnaryAST(operator, inner_exp)
@@ -107,6 +115,8 @@ def parse_unop(tokens):
             return asdl.ComplementAST()
         case "-":
             return asdl.NegateAST()
+        case "!":
+            return asdl.NotAST()
         case _:
             raise ValueError(f"Syntax error: Unknown unary operator '{token}'")
 
@@ -123,5 +133,21 @@ def parse_binop(tokens):
             return asdl.DivideAST()
         case "%":
             return asdl.RemainderAST()
+        case "&&":
+            return asdl.AndAST()
+        case "||":
+            return asdl.OrAST()
+        case "==":
+            return asdl.EqualAST()
+        case "!=":
+            return asdl.NotEqualAST()
+        case "<":
+            return asdl.LessThanAST()
+        case "<=":
+            return asdl.LessOrEqualAST()
+        case ">":
+            return asdl.GreaterThanAST()
+        case ">=":
+            return asdl.GreaterOrEqualAST()
         case _:
             raise ValueError(f"Syntax error: Unknown binary operator '{token}'")
