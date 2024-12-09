@@ -363,24 +363,24 @@ class CopyTACKY(Instruction):
 
 
 @dataclass
-class Jump(Instruction):
+class JumpTACKY(Instruction):
     target: str
 
 
 @dataclass
-class JumpIfZero(Instruction):
+class JumpIfZeroTACKY(Instruction):
     condition: Val
     target: str
 
 
 @dataclass
-class JumpIfNotZero(Instruction):
+class JumpIfNotZeroTACKY(Instruction):
     condition: Val
     target: str
 
 
 @dataclass
-class Label(Instruction):
+class LabelTACKY(Instruction):
     identifier: str
 
 

@@ -16,15 +16,18 @@
 import asdl
 
 
-def _mk_tmp():
+def _mk_inc(prefix):
     count = 0
     while True:
-        yield f"tmp.{count}"
+        yield f"{prefix}{count}"
         count += 1
 
 
 def make_temporary(g):
     return next(g)
+
+
+make_label = make_temporary
 
 
 def convert(tree):
@@ -40,30 +43,59 @@ def convert_function_definition(node):
 
 
 def convert_statement(node):
-    g, instructions = _mk_tmp(), []
-    v = convert_tacky(g, node.exp, instructions)
+    g, h, i = _mk_inc("tmp."), _mk_inc("and_"), _mk_inc("or_")
+    instructions = []
+    v = convert_tacky(g, h, i, node.exp, instructions)
     instructions.append(asdl.ReturnTACKY(v))
     return instructions
 
 
-def convert_tacky(g, node, instructions):
+def convert_tacky(g, h, i, node, instructions):
+    c0, c1 = asdl.ConstantTACKY(0), asdl.ConstantTACKY(1)
+    end_label = "end"
     match node:
         case asdl.ConstantAST(c):
             return asdl.ConstantTACKY(c)
         case asdl.UnaryAST(op, inner):
-            src = convert_tacky(g, inner, instructions)
+            src = convert_tacky(g, h, i, inner, instructions)
             dst_name = make_temporary(g)
             dst = asdl.VarTACKY(dst_name)
             tacky_op = convert_unop(op)
             instructions.append(asdl.UnaryTACKY(tacky_op, src, dst))
             return dst
         case asdl.BinaryAST(op, e1, e2):
-            v1 = convert_tacky(g, e1, instructions)
-            v2 = convert_tacky(g, e2, instructions)
             dst_name = make_temporary(g)
             dst = asdl.VarTACKY(dst_name)
-            tacky_op = convert_binop(op)
-            instructions.append(asdl.BinaryTACKY(tacky_op, v1, v2, dst))
+            v1 = convert_tacky(g, h, i, e1, instructions)
+            match op:
+                case asdl.AndAST():
+                    false_label = make_label(h)
+                    instructions.append(asdl.JumpIfZeroTACKY(v1, false_label))
+                    v2 = convert_tacky(g, h, i, e2, instructions)
+                    instructions += [
+                        asdl.JumpIfZeroTACKY(v2, false_label),
+                        asdl.CopyTACKY(c1, dst),
+                        asdl.JumpTACKY(end_label),
+                        asdl.LabelTACKY(false_label),
+                        asdl.CopyTACKY(c0, dst),
+                        asdl.LabelTACKY(end_label),
+                    ]
+                case asdl.OrAST():
+                    true_label = make_label(h)
+                    instructions.append(asdl.JumpIfNotZeroTACKY(v1, true_label))
+                    v2 = convert_tacky(g, h, i, e2, instructions)
+                    instructions += [
+                        asdl.JumpIfNotZeroTACKY(v2, true_label),
+                        asdl.CopyTACKY(c0, dst),
+                        asdl.JumpTACKY(end_label),
+                        asdl.LabelTACKY(true_label),
+                        asdl.CopyTACKY(c1, dst),
+                        asdl.LabelTACKY(end_label),
+                    ]
+                case _:
+                    v2 = convert_tacky(g, h, i, e2, instructions)
+                    tacky_op = convert_binop(op)
+                    instructions.append(asdl.BinaryTACKY(tacky_op, v1, v2, dst))
             return dst
 
 
@@ -73,6 +105,8 @@ def convert_unop(op):
             return asdl.ComplementTACKY()
         case asdl.NegateAST():
             return asdl.NegateTACKY()
+        case asdl.NotAST():
+            return asdl.NotTACKY()
 
 
 def convert_binop(op):
@@ -87,3 +121,15 @@ def convert_binop(op):
             return asdl.DivideTACKY()
         case asdl.RemainderAST():
             return asdl.RemainderTACKY()
+        case asdl.EqualAST():
+            return asdl.EqualTACKY()
+        case asdl.NotEqualAST():
+            return asdl.NotEqualTACKY()
+        case asdl.LessThanAST():
+            return asdl.LessThanTACKY()
+        case asdl.LessOrEqualAST():
+            return asdl.LessOrEqualTACKY()
+        case asdl.GreaterThanAST():
+            return asdl.GreaterThanTACKY()
+        case asdl.GreaterOrEqualAST():
+            return asdl.GreaterOrEqualAST()
