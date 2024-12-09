@@ -46,6 +46,11 @@ class NegateTACKY(UnaryOperator):
         return isinstance(o, NegateTACKY)
 
 
+class NotTACKY(UnaryOperator):
+    def __eq__(self, o):
+        return isinstance(o, NotTACKY)
+
+
 class NegASM(UnaryOperator):
     def __eq__(self, o):
         return isinstance(o, NegASM)
@@ -148,6 +153,36 @@ class DivideTACKY(BinaryOperator):
 class RemainderTACKY(BinaryOperator):
     def __eq__(self, o):
         return isinstance(o, RemainderTACKY)
+
+
+class EqualTACKY(BinaryOperator):
+    def __eq__(self, o):
+        return isinstance(o, EqualTACKY)
+
+
+class NotEqualTACKY(BinaryOperator):
+    def __eq__(self, o):
+        return isinstance(o, NotEqualTACKY)
+
+
+class LessThanTACKY(BinaryOperator):
+    def __eq__(self, o):
+        return isinstance(o, LessThanTACKY)
+
+
+class LessOrEqualTACKY(BinaryOperator):
+    def __eq__(self, o):
+        return isinstance(o, LessOrEqualTACKY)
+
+
+class GreaterThanTACKY(BinaryOperator):
+    def __eq__(self, o):
+        return isinstance(o, GreaterThanTACKY)
+
+
+class GreaterOrEqualTACKY(BinaryOperator):
+    def __eq__(self, o):
+        return isinstance(o, GreaterOrEqualTACKY)
 
 
 class AddASM(BinaryOperator):
@@ -319,6 +354,34 @@ class BinaryTACKY(Instruction):
     src1: Val
     src2: Val
     dst: Val
+
+
+@dataclass
+class CopyTACKY(Instruction):
+    src: Val
+    dst: Val
+
+
+@dataclass
+class Jump(Instruction):
+    target: str
+
+
+@dataclass
+class JumpIfZero(Instruction):
+    condition: Val
+    target: str
+
+
+@dataclass
+class JumpIfNotZero(Instruction):
+    condition: Val
+    target: str
+
+
+@dataclass
+class Label(Instruction):
+    identifier: str
 
 
 class FunctionDefinition(ABC):
