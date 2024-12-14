@@ -28,6 +28,9 @@ class TOKEN(Enum):
     OPEN_BRACE = auto()
     CLOSE_BRACE = auto()
     SEMICOLON = auto()
+    BITWISE_COMPLEMENT_OPERATOR = auto()
+    NEGATION_OPERATOR = auto()
+    DECREMENT_OPERATOR = auto()
 
 
 TOKEN_PATTERNS = {
@@ -41,6 +44,9 @@ TOKEN_PATTERNS = {
     TOKEN.OPEN_BRACE: re.compile(r"{"),
     TOKEN.CLOSE_BRACE: re.compile(r"}"),
     TOKEN.SEMICOLON: re.compile(r";"),
+    TOKEN.BITWISE_COMPLEMENT_OPERATOR: re.compile(r"~"),
+    TOKEN.NEGATION_OPERATOR: re.compile(r"-"),
+    TOKEN.DECREMENT_OPERATOR: re.compile(r"--"),
 }
 
 

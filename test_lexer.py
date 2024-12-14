@@ -26,6 +26,51 @@ class TestLexer(TestCommon):
             self.listing_1_1_tokens,
         )
 
+        self.assertEqual(
+            lexer.tokenize("int main(void) {\n\treturn ~(-2);\n}\n"),
+            [
+                "int",
+                "main",
+                "(",
+                "void",
+                ")",
+                "{",
+                "return",
+                "~",
+                "(",
+                "-",
+                "2",
+                ")",
+                ";",
+                "}",
+            ],
+        )  # Listing 2-1
+
+        self.assertEqual(
+            lexer.tokenize("int main(void) {\n\treturn --2;\n}\n"),
+            ["int", "main", "(", "void", ")", "{", "return", "--", "2", ";", "}"],
+        )  # Listing 2-3
+
+        self.assertEqual(
+            lexer.tokenize("int main(void) {\n\treturn -(-2);\n}\n"),
+            [
+                "int",
+                "main",
+                "(",
+                "void",
+                ")",
+                "{",
+                "return",
+                "-",
+                "(",
+                "-",
+                "2",
+                ")",
+                ";",
+                "}",
+            ],
+        )  # Listing 2-4
+
 
 if __name__ == "__main__":
     unittest.main()
