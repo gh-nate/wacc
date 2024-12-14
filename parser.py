@@ -84,8 +84,8 @@ def parse_exp(tokens):
 def parse_unop(tokens):
     match token := take_token(tokens):
         case "~":
-            return asdl.UnaryOperator.ComplementAST
+            return asdl.UnaryOperatorAST.COMPLEMENT
         case "-":
-            return asdl.UnaryOperator.NegateAST
+            return asdl.UnaryOperatorAST.NEGATE
         case _:
             raise SyntaxError(f"Unknown unary operator: '{token}'")

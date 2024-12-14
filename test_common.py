@@ -57,6 +57,20 @@ class TestCommon(unittest.TestCase):
             ";",
             "}",
         ]
+        self.listing_2_1_ast = asdl.ProgramAST(
+            asdl.FunctionAST(
+                "main",
+                asdl.ReturnAST(
+                    asdl.UnaryAST(
+                        asdl.UnaryOperatorAST.COMPLEMENT,
+                        asdl.UnaryAST(
+                            asdl.UnaryOperatorAST.NEGATE,
+                            asdl.ConstantAST(2),
+                        ),
+                    ),
+                ),
+            ),
+        )
 
         self.listing_2_3_tokens = [
             "int",
@@ -88,3 +102,17 @@ class TestCommon(unittest.TestCase):
             ";",
             "}",
         ]
+        self.listing_2_4_ast = asdl.ProgramAST(
+            asdl.FunctionAST(
+                "main",
+                asdl.ReturnAST(
+                    asdl.UnaryAST(
+                        asdl.UnaryOperatorAST.NEGATE,
+                        asdl.UnaryAST(
+                            asdl.UnaryOperatorAST.NEGATE,
+                            asdl.ConstantAST(2),
+                        ),
+                    ),
+                ),
+            ),
+        )

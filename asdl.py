@@ -19,8 +19,17 @@ from enum import Enum, auto
 
 
 class UnaryOperator(Enum):
-    ComplementAST = auto()
-    NegateAST = auto()
+    pass
+
+
+class UnaryOperatorAST(UnaryOperator):
+    COMPLEMENT = auto()
+    NEGATE = auto()
+
+
+class UnaryOperatorTACKY(UnaryOperator):
+    COMPLEMENT = auto()
+    NEGATE = auto()
 
 
 class Operand(ABC):
@@ -37,6 +46,20 @@ class RegisterASM(Operand):
         return isinstance(o, RegisterASM)
 
 
+class Val(ABC):
+    pass
+
+
+@dataclass
+class ConstantTACKY(Val):
+    int: int
+
+
+@dataclass
+class VarTACKY(Val):
+    identifier: str
+
+
 class Exp(ABC):
     pass
 
@@ -48,7 +71,7 @@ class ConstantAST(Exp):
 
 @dataclass
 class UnaryAST(Exp):
-    unary_operator: UnaryOperator
+    unary_operator: UnaryOperatorAST
     exp: Exp
 
 
@@ -63,6 +86,18 @@ class ReturnAST(Statement):
 
 class Instruction(ABC):
     pass
+
+
+@dataclass
+class ReturnTACKY(Instruction):
+    val: Val
+
+
+@dataclass
+class UnaryTACKY(Instruction):
+    unary_operator: UnaryOperatorTACKY
+    src: Val
+    dst: Val
 
 
 @dataclass
@@ -87,6 +122,12 @@ class FunctionAST(FunctionDefinition):
 
 
 @dataclass
+class FunctionTACKY(FunctionDefinition):
+    identifier: str
+    body: list[Instruction]
+
+
+@dataclass
 class FunctionASM(FunctionDefinition):
     name: str
     instructions: list[Instruction]
@@ -98,6 +139,11 @@ class Program(ABC):
 
 @dataclass
 class ProgramAST(Program):
+    function_definition: FunctionDefinition
+
+
+@dataclass
+class ProgramTACKY(Program):
     function_definition: FunctionDefinition
 
 
