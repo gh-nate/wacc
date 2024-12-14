@@ -1,1 +1,9 @@
 Based on https://nostarch.com/writing-c-compiler
+
+Use
+
+  ./driver -h
+
+Checks
+
+  ./checks.sh
