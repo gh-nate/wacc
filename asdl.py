@@ -17,6 +17,20 @@ from abc import ABC
 from dataclasses import dataclass
 
 
+class Operand(ABC):
+    pass
+
+
+@dataclass
+class ImmASM(Operand):
+    int: int
+
+
+class RegisterASM(Operand):
+    def __eq__(self, o):
+        return isinstance(o, RegisterASM)
+
+
 class Exp(ABC):
     pass
 
@@ -35,6 +49,21 @@ class ReturnAST(Statement):
     exp: Exp
 
 
+class Instruction(ABC):
+    pass
+
+
+@dataclass
+class MovASM(Instruction):
+    src: Operand
+    dst: Operand
+
+
+class RetASM(Instruction):
+    def __eq__(self, o):
+        return isinstance(o, RetASM)
+
+
 class FunctionDefinition(ABC):
     pass
 
@@ -45,10 +74,21 @@ class FunctionAST(FunctionDefinition):
     body: Statement
 
 
+@dataclass
+class FunctionASM(FunctionDefinition):
+    name: str
+    instructions: list[Instruction]
+
+
 class Program(ABC):
     pass
 
 
 @dataclass
 class ProgramAST(Program):
+    function_definition: FunctionDefinition
+
+
+@dataclass
+class ProgramASM(Program):
     function_definition: FunctionDefinition

@@ -18,6 +18,7 @@
 from pathlib import Path
 
 import argparse
+import codegen
 import lexer
 import parser
 import subprocess
@@ -41,10 +42,11 @@ preprocessed_file.unlink()
 if arguments.lex:
     sys.exit()
 
-parser.parse(tokens)
+ast_tree = parser.parse(tokens)
 if arguments.parse:
     sys.exit()
 
+codegen.convert(ast_tree)
 if arguments.codegen:
     sys.exit()
 

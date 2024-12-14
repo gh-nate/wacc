@@ -15,7 +15,6 @@
 
 from test_common import TestCommon
 
-import asdl
 import parser
 import unittest
 
@@ -24,9 +23,7 @@ class TestParser(TestCommon):
     def test_parse(self):
         self.assertEqual(
             parser.parse(self.listing_1_1_tokens),
-            asdl.ProgramAST(
-                asdl.FunctionAST("main", asdl.ReturnAST(asdl.ConstantAST(2)))
-            ),
+            self.listing_1_1_ast,
         )
 
 
