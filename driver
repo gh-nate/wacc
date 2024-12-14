@@ -19,6 +19,7 @@ from pathlib import Path
 
 import argparse
 import codegen
+import emit
 import lexer
 import parser
 import subprocess
@@ -46,11 +47,13 @@ ast_tree = parser.parse(tokens)
 if arguments.parse:
     sys.exit()
 
-codegen.convert(ast_tree)
+asm_tree = codegen.convert(ast_tree)
 if arguments.codegen:
     sys.exit()
 
 assembly_file = input_file.with_suffix(".s")
+with assembly_file.open("w") as f:
+    f.write(emit.output(asm_tree))
 if arguments.S:
     sys.exit()
 

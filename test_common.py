@@ -34,3 +34,9 @@ class TestCommon(unittest.TestCase):
         self.listing_1_1_ast = asdl.ProgramAST(
             asdl.FunctionAST("main", asdl.ReturnAST(asdl.ConstantAST(2)))
         )
+        self.listing_1_1_asm = asdl.ProgramASM(
+            asdl.FunctionASM(
+                "main",
+                [asdl.MovASM(asdl.ImmASM(2), asdl.RegisterASM()), asdl.RetASM()],
+            )
+        )
