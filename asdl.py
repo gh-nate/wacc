@@ -15,6 +15,12 @@
 
 from abc import ABC
 from dataclasses import dataclass
+from enum import Enum, auto
+
+
+class UnaryOperator(Enum):
+    ComplementAST = auto()
+    NegateAST = auto()
 
 
 class Operand(ABC):
@@ -38,6 +44,12 @@ class Exp(ABC):
 @dataclass
 class ConstantAST(Exp):
     int: int
+
+
+@dataclass
+class UnaryAST(Exp):
+    unary_operator: UnaryOperator
+    exp: Exp
 
 
 class Statement(ABC):

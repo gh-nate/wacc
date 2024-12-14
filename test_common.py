@@ -40,3 +40,51 @@ class TestCommon(unittest.TestCase):
                 [asdl.MovASM(asdl.ImmASM(2), asdl.RegisterASM()), asdl.RetASM()],
             )
         )
+
+        self.listing_2_1_tokens = [
+            "int",
+            "main",
+            "(",
+            "void",
+            ")",
+            "{",
+            "return",
+            "~",
+            "(",
+            "-",
+            "2",
+            ")",
+            ";",
+            "}",
+        ]
+
+        self.listing_2_3_tokens = [
+            "int",
+            "main",
+            "(",
+            "void",
+            ")",
+            "{",
+            "return",
+            "--",
+            "2",
+            ";",
+            "}",
+        ]
+
+        self.listing_2_4_tokens = [
+            "int",
+            "main",
+            "(",
+            "void",
+            ")",
+            "{",
+            "return",
+            "-",
+            "(",
+            "-",
+            "2",
+            ")",
+            ";",
+            "}",
+        ]
