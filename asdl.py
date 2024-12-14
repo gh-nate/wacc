@@ -13,19 +13,42 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from test_common import TestCommon
-
-import lexer
-import unittest
+from abc import ABC
+from dataclasses import dataclass
 
 
-class TestLexer(TestCommon):
-    def test_tokenize(self):
-        self.assertEqual(
-            lexer.tokenize("int main(void) {\n\treturn 2;\n}\n"),
-            self.listing_1_1_tokens,
-        )
+class Exp(ABC):
+    pass
 
 
-if __name__ == "__main__":
-    unittest.main()
+@dataclass
+class ConstantAST(Exp):
+    int: int
+
+
+class Statement(ABC):
+    pass
+
+
+@dataclass
+class ReturnAST(Statement):
+    exp: Exp
+
+
+class FunctionDefinition(ABC):
+    pass
+
+
+@dataclass
+class FunctionAST(FunctionDefinition):
+    name: str
+    body: Statement
+
+
+class Program(ABC):
+    pass
+
+
+@dataclass
+class ProgramAST(Program):
+    function_definition: FunctionDefinition
