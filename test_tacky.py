@@ -24,12 +24,7 @@ class TestTacky(TestCommon):
     def test_convert(self):
         self.assertEqual(
             tacky.convert(self.listing_1_1_ast),
-            asdl.ProgramTACKY(
-                asdl.FunctionTACKY(
-                    "main",
-                    [asdl.ReturnTACKY(asdl.ConstantTACKY(2))],
-                ),
-            ),
+            self.listing_1_1_tacky,
         )
 
         self.assertEqual(
@@ -46,63 +41,17 @@ class TestTacky(TestCommon):
                     )
                 ),
             ),
-            asdl.ProgramTACKY(
-                asdl.FunctionTACKY(
-                    "main",
-                    [
-                        asdl.UnaryTACKY(
-                            asdl.UnaryOperatorTACKY.COMPLEMENT,
-                            asdl.ConstantTACKY(2),
-                            asdl.VarTACKY("tmp.0"),
-                        ),
-                        asdl.ReturnTACKY(asdl.VarTACKY("tmp.0")),
-                    ],
-                ),
-            ),
-        )  # Table 2-1 Row 2
+            self.table_2_1_row_2_tacky,
+        )
 
         self.assertEqual(
             tacky.convert(self.listing_2_1_ast),
-            asdl.ProgramTACKY(
-                asdl.FunctionTACKY(
-                    "main",
-                    [
-                        asdl.UnaryTACKY(
-                            asdl.UnaryOperatorTACKY.NEGATE,
-                            asdl.ConstantTACKY(2),
-                            asdl.VarTACKY("tmp.0"),
-                        ),
-                        asdl.UnaryTACKY(
-                            asdl.UnaryOperatorTACKY.COMPLEMENT,
-                            asdl.VarTACKY("tmp.0"),
-                            asdl.VarTACKY("tmp.1"),
-                        ),
-                        asdl.ReturnTACKY(asdl.VarTACKY("tmp.1")),
-                    ],
-                ),
-            ),
+            self.listing_2_1_tacky,
         )
 
         self.assertEqual(
             tacky.convert(self.listing_2_4_ast),
-            asdl.ProgramTACKY(
-                asdl.FunctionTACKY(
-                    "main",
-                    [
-                        asdl.UnaryTACKY(
-                            asdl.UnaryOperatorTACKY.NEGATE,
-                            asdl.ConstantTACKY(2),
-                            asdl.VarTACKY("tmp.0"),
-                        ),
-                        asdl.UnaryTACKY(
-                            asdl.UnaryOperatorTACKY.NEGATE,
-                            asdl.VarTACKY("tmp.0"),
-                            asdl.VarTACKY("tmp.1"),
-                        ),
-                        asdl.ReturnTACKY(asdl.VarTACKY("tmp.1")),
-                    ],
-                ),
-            ),
+            self.listing_2_4_tacky,
         )
 
         self.assertEqual(
@@ -125,30 +74,8 @@ class TestTacky(TestCommon):
                     ),
                 ),
             ),
-            asdl.ProgramTACKY(
-                asdl.FunctionTACKY(
-                    "main",
-                    [
-                        asdl.UnaryTACKY(
-                            asdl.UnaryOperatorTACKY.NEGATE,
-                            asdl.ConstantTACKY(8),
-                            asdl.VarTACKY("tmp.0"),
-                        ),
-                        asdl.UnaryTACKY(
-                            asdl.UnaryOperatorTACKY.COMPLEMENT,
-                            asdl.VarTACKY("tmp.0"),
-                            asdl.VarTACKY("tmp.1"),
-                        ),
-                        asdl.UnaryTACKY(
-                            asdl.UnaryOperatorTACKY.NEGATE,
-                            asdl.VarTACKY("tmp.1"),
-                            asdl.VarTACKY("tmp.2"),
-                        ),
-                        asdl.ReturnTACKY(asdl.VarTACKY("tmp.2")),
-                    ],
-                ),
-            ),
-        )  # Table 2-1 Row 3
+            self.table_2_1_row_3_tacky,
+        )
 
 
 if __name__ == "__main__":

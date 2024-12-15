@@ -32,6 +32,16 @@ class UnaryOperatorTACKY(UnaryOperator):
     NEGATE = auto()
 
 
+class UnaryOperatorASM(UnaryOperator):
+    NEG = auto()
+    NOT = auto()
+
+
+class Reg(Enum):
+    AX = auto()
+    R10 = auto()
+
+
 class Operand(ABC):
     pass
 
@@ -41,9 +51,19 @@ class ImmASM(Operand):
     int: int
 
 
-class RegisterASM(Operand):
-    def __eq__(self, o):
-        return isinstance(o, RegisterASM)
+@dataclass
+class RegASM(Operand):
+    reg: Reg
+
+
+@dataclass
+class PseudoASM(Operand):
+    identifier: str
+
+
+@dataclass
+class StackASM(Operand):
+    int: int
 
 
 class Val(ABC):
@@ -104,6 +124,17 @@ class UnaryTACKY(Instruction):
 class MovASM(Instruction):
     src: Operand
     dst: Operand
+
+
+@dataclass
+class UnaryASM(Instruction):
+    unop: UnaryOperatorASM
+    op: Operand
+
+
+@dataclass
+class AllocateStackASM(Instruction):
+    int: int
 
 
 class RetASM(Instruction):

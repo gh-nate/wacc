@@ -57,7 +57,7 @@ def output_instructions(instructions, s):
 
 def output_operand(node, s):
     match node:
-        case asdl.RegisterASM():
+        case asdl.RegASM(asdl.Reg.AX):
             s.write("%eax")
         case asdl.ImmASM(int):
             s.write(f"${int}")

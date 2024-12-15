@@ -34,10 +34,20 @@ class TestCommon(unittest.TestCase):
         self.listing_1_1_ast = asdl.ProgramAST(
             asdl.FunctionAST("main", asdl.ReturnAST(asdl.ConstantAST(2)))
         )
+        self.listing_1_1_tacky = asdl.ProgramTACKY(
+            asdl.FunctionTACKY(
+                "main",
+                [asdl.ReturnTACKY(asdl.ConstantTACKY(2))],
+            ),
+        )
         self.listing_1_1_asm = asdl.ProgramASM(
             asdl.FunctionASM(
                 "main",
-                [asdl.MovASM(asdl.ImmASM(2), asdl.RegisterASM()), asdl.RetASM()],
+                [
+                    asdl.AllocateStackASM(0),
+                    asdl.MovASM(asdl.ImmASM(2), asdl.RegASM(asdl.Reg.AX)),
+                    asdl.RetASM(),
+                ],
             )
         )
 
@@ -69,6 +79,38 @@ class TestCommon(unittest.TestCase):
                         ),
                     ),
                 ),
+            ),
+        )
+        self.listing_2_1_tacky = asdl.ProgramTACKY(
+            asdl.FunctionTACKY(
+                "main",
+                [
+                    asdl.UnaryTACKY(
+                        asdl.UnaryOperatorTACKY.NEGATE,
+                        asdl.ConstantTACKY(2),
+                        asdl.VarTACKY("tmp.0"),
+                    ),
+                    asdl.UnaryTACKY(
+                        asdl.UnaryOperatorTACKY.COMPLEMENT,
+                        asdl.VarTACKY("tmp.0"),
+                        asdl.VarTACKY("tmp.1"),
+                    ),
+                    asdl.ReturnTACKY(asdl.VarTACKY("tmp.1")),
+                ],
+            ),
+        )
+
+        self.table_2_1_row_2_tacky = asdl.ProgramTACKY(
+            asdl.FunctionTACKY(
+                "main",
+                [
+                    asdl.UnaryTACKY(
+                        asdl.UnaryOperatorTACKY.COMPLEMENT,
+                        asdl.ConstantTACKY(2),
+                        asdl.VarTACKY("tmp.0"),
+                    ),
+                    asdl.ReturnTACKY(asdl.VarTACKY("tmp.0")),
+                ],
             ),
         )
 
@@ -114,5 +156,47 @@ class TestCommon(unittest.TestCase):
                         ),
                     ),
                 ),
+            ),
+        )
+        self.listing_2_4_tacky = asdl.ProgramTACKY(
+            asdl.FunctionTACKY(
+                "main",
+                [
+                    asdl.UnaryTACKY(
+                        asdl.UnaryOperatorTACKY.NEGATE,
+                        asdl.ConstantTACKY(2),
+                        asdl.VarTACKY("tmp.0"),
+                    ),
+                    asdl.UnaryTACKY(
+                        asdl.UnaryOperatorTACKY.NEGATE,
+                        asdl.VarTACKY("tmp.0"),
+                        asdl.VarTACKY("tmp.1"),
+                    ),
+                    asdl.ReturnTACKY(asdl.VarTACKY("tmp.1")),
+                ],
+            ),
+        )
+
+        self.table_2_1_row_3_tacky = asdl.ProgramTACKY(
+            asdl.FunctionTACKY(
+                "main",
+                [
+                    asdl.UnaryTACKY(
+                        asdl.UnaryOperatorTACKY.NEGATE,
+                        asdl.ConstantTACKY(8),
+                        asdl.VarTACKY("tmp.0"),
+                    ),
+                    asdl.UnaryTACKY(
+                        asdl.UnaryOperatorTACKY.COMPLEMENT,
+                        asdl.VarTACKY("tmp.0"),
+                        asdl.VarTACKY("tmp.1"),
+                    ),
+                    asdl.UnaryTACKY(
+                        asdl.UnaryOperatorTACKY.NEGATE,
+                        asdl.VarTACKY("tmp.1"),
+                        asdl.VarTACKY("tmp.2"),
+                    ),
+                    asdl.ReturnTACKY(asdl.VarTACKY("tmp.2")),
+                ],
             ),
         )
