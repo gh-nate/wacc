@@ -21,13 +21,59 @@ import unittest
 
 class TestEmit(TestCommon):
     def test_output(self):
-        name = "main"
-        if emit.SYSTEM == "Darwin":
-            name = "_" + name
-        s = f"\t.globl {name}\n{name}:\n\tmovl $2, %eax\n\tret\n"
-        if emit.SYSTEM == "Linux":
-            s += emit.NO_EXEC_STACK
-        self.assertEqual(emit.output(self.listing_1_1_asm), s)
+        def fill(interlude):
+            name = "main"
+            if emit.SYSTEM == "Darwin":
+                name = "_" + name
+            prologue = f"\t.globl {name}\n{name}:\n\tpushq %rbp\n\tmovq %rsp, %rbp\n"
+            epilogue = "\tmovq %rbp, %rsp\n\tpopq %rbp\n\tret\n"
+            if emit.SYSTEM == "Linux":
+                epilogue += emit.NO_EXEC_STACK
+            return prologue + interlude + epilogue
+
+        s = "\tsubq $0, %rsp\n"
+        s += "\tmovl $2, %eax\n"
+        self.assertEqual(emit.output(self.listing_1_1_asm), fill(s))
+
+        s = "\tsubq $8, %rsp\n"
+        s += "\tmovl $2, %r10d\n"
+        s += "\tmovl %r10d, -4(%rbp)\n"
+        s += "\tnegl -4(%rbp)\n"
+        s += "\tmovl -4(%rbp), %r10d\n"
+        s += "\tmovl %r10d, -8(%rbp)\n"
+        s += "\tnotl -8(%rbp)\n"
+        s += "\tmovl -8(%rbp), %eax\n"
+        self.assertEqual(emit.output(self.listing_2_1_asm), fill(s))
+
+        s = "\tsubq $4, %rsp\n"
+        s += "\tmovl $2, %r10d\n"
+        s += "\tmovl %r10d, -4(%rbp)\n"
+        s += "\tnotl -4(%rbp)\n"
+        s += "\tmovl -4(%rbp), %eax\n"
+        self.assertEqual(emit.output(self.table_2_1_row_2_asm), fill(s))
+
+        s = "\tsubq $8, %rsp\n"
+        s += "\tmovl $2, %r10d\n"
+        s += "\tmovl %r10d, -4(%rbp)\n"
+        s += "\tnegl -4(%rbp)\n"
+        s += "\tmovl -4(%rbp), %r10d\n"
+        s += "\tmovl %r10d, -8(%rbp)\n"
+        s += "\tnegl -8(%rbp)\n"
+        s += "\tmovl -8(%rbp), %eax\n"
+        self.assertEqual(emit.output(self.listing_2_4_asm), fill(s))
+
+        s = "\tsubq $12, %rsp\n"
+        s += "\tmovl $8, %r10d\n"
+        s += "\tmovl %r10d, -4(%rbp)\n"
+        s += "\tnegl -4(%rbp)\n"
+        s += "\tmovl -4(%rbp), %r10d\n"
+        s += "\tmovl %r10d, -8(%rbp)\n"
+        s += "\tnotl -8(%rbp)\n"
+        s += "\tmovl -8(%rbp), %r10d\n"
+        s += "\tmovl %r10d, -12(%rbp)\n"
+        s += "\tnegl -12(%rbp)\n"
+        s += "\tmovl -12(%rbp), %eax\n"
+        self.assertEqual(emit.output(self.table_2_1_row_3_asm), fill(s))
 
 
 if __name__ == "__main__":

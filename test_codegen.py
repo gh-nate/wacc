@@ -15,7 +15,6 @@
 
 from test_common import TestCommon
 
-import asdl
 import codegen
 import unittest
 
@@ -26,82 +25,22 @@ class TestCodegen(TestCommon):
 
         self.assertEqual(
             codegen.convert(self.table_2_1_row_2_tacky),
-            asdl.ProgramASM(
-                asdl.FunctionASM(
-                    "main",
-                    [
-                        asdl.AllocateStackASM(4),
-                        asdl.MovASM(asdl.ImmASM(2), asdl.RegASM(asdl.Reg.R10)),
-                        asdl.MovASM(asdl.RegASM(asdl.Reg.R10), asdl.StackASM(-4)),
-                        asdl.UnaryASM(asdl.UnaryOperatorASM.NOT, asdl.StackASM(-4)),
-                        asdl.MovASM(asdl.StackASM(-4), asdl.RegASM(asdl.Reg.AX)),
-                        asdl.RetASM(),
-                    ],
-                ),
-            ),
+            self.table_2_1_row_2_asm,
         )
 
         self.assertEqual(
             codegen.convert(self.listing_2_1_tacky),
-            asdl.ProgramASM(
-                asdl.FunctionASM(
-                    "main",
-                    [
-                        asdl.AllocateStackASM(8),
-                        asdl.MovASM(asdl.ImmASM(2), asdl.RegASM(asdl.Reg.R10)),
-                        asdl.MovASM(asdl.RegASM(asdl.Reg.R10), asdl.StackASM(-4)),
-                        asdl.UnaryASM(asdl.UnaryOperatorASM.NEG, asdl.StackASM(-4)),
-                        asdl.MovASM(asdl.StackASM(-4), asdl.RegASM(asdl.Reg.R10)),
-                        asdl.MovASM(asdl.RegASM(asdl.Reg.R10), asdl.StackASM(-8)),
-                        asdl.UnaryASM(asdl.UnaryOperatorASM.NOT, asdl.StackASM(-8)),
-                        asdl.MovASM(asdl.StackASM(-8), asdl.RegASM(asdl.Reg.AX)),
-                        asdl.RetASM(),
-                    ],
-                ),
-            ),
+            self.listing_2_1_asm,
         )
 
         self.assertEqual(
             codegen.convert(self.listing_2_4_tacky),
-            asdl.ProgramASM(
-                asdl.FunctionASM(
-                    "main",
-                    [
-                        asdl.AllocateStackASM(8),
-                        asdl.MovASM(asdl.ImmASM(2), asdl.RegASM(asdl.Reg.R10)),
-                        asdl.MovASM(asdl.RegASM(asdl.Reg.R10), asdl.StackASM(-4)),
-                        asdl.UnaryASM(asdl.UnaryOperatorASM.NEG, asdl.StackASM(-4)),
-                        asdl.MovASM(asdl.StackASM(-4), asdl.RegASM(asdl.Reg.R10)),
-                        asdl.MovASM(asdl.RegASM(asdl.Reg.R10), asdl.StackASM(-8)),
-                        asdl.UnaryASM(asdl.UnaryOperatorASM.NEG, asdl.StackASM(-8)),
-                        asdl.MovASM(asdl.StackASM(-8), asdl.RegASM(asdl.Reg.AX)),
-                        asdl.RetASM(),
-                    ],
-                ),
-            ),
+            self.listing_2_4_asm,
         )
 
         self.assertEqual(
             codegen.convert(self.table_2_1_row_3_tacky),
-            asdl.ProgramASM(
-                asdl.FunctionASM(
-                    "main",
-                    [
-                        asdl.AllocateStackASM(12),
-                        asdl.MovASM(asdl.ImmASM(8), asdl.RegASM(asdl.Reg.R10)),
-                        asdl.MovASM(asdl.RegASM(asdl.Reg.R10), asdl.StackASM(-4)),
-                        asdl.UnaryASM(asdl.UnaryOperatorASM.NEG, asdl.StackASM(-4)),
-                        asdl.MovASM(asdl.StackASM(-4), asdl.RegASM(asdl.Reg.R10)),
-                        asdl.MovASM(asdl.RegASM(asdl.Reg.R10), asdl.StackASM(-8)),
-                        asdl.UnaryASM(asdl.UnaryOperatorASM.NOT, asdl.StackASM(-8)),
-                        asdl.MovASM(asdl.StackASM(-8), asdl.RegASM(asdl.Reg.R10)),
-                        asdl.MovASM(asdl.RegASM(asdl.Reg.R10), asdl.StackASM(-12)),
-                        asdl.UnaryASM(asdl.UnaryOperatorASM.NEG, asdl.StackASM(-12)),
-                        asdl.MovASM(asdl.StackASM(-12), asdl.RegASM(asdl.Reg.AX)),
-                        asdl.RetASM(),
-                    ],
-                ),
-            ),
+            self.table_2_1_row_3_asm,
         )
 
 

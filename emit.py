@@ -38,7 +38,7 @@ def output_function(node, s):
     name = node.name
     if SYSTEM == "Darwin":
         name = "_" + name
-    print(f"\t.globl {name}\n{name}:", file=s)
+    print(f"\t.globl {name}\n{name}:\n\tpushq %rbp\n\tmovq %rsp, %rbp", file=s)
     output_instructions(node.instructions, s)
 
 
@@ -52,12 +52,28 @@ def output_instructions(instructions, s):
                 output_operand(dst, s)
                 s.write("\n")
             case asdl.RetASM():
+                print("\tmovq %rbp, %rsp", file=s)
+                print("\tpopq %rbp", file=s)
                 print("\tret", file=s)
+            case asdl.UnaryASM(unary_operator, operand):
+                match unary_operator:
+                    case asdl.UnaryOperatorASM.NEG:
+                        s.write("\tnegl ")
+                    case asdl.UnaryOperatorASM.NOT:
+                        s.write("\tnotl ")
+                output_operand(operand, s)
+                s.write("\n")
+            case asdl.AllocateStackASM(i):
+                print(f"\tsubq ${i}, %rsp", file=s)
 
 
 def output_operand(node, s):
     match node:
         case asdl.RegASM(asdl.Reg.AX):
             s.write("%eax")
+        case asdl.RegASM(asdl.Reg.R10):
+            s.write("%r10d")
+        case asdl.StackASM(i):
+            s.write(f"{i}(%rbp)")
         case asdl.ImmASM(int):
             s.write(f"${int}")
