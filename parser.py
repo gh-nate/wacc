@@ -67,18 +67,41 @@ def parse_statement(tokens):
     return asdl.ReturnAST(exp)
 
 
-def parse_exp(tokens):
+BINARY_OPERATOR_PRECEDENCE = {
+    "*": 50,
+    "/": 50,
+    "%": 50,
+    "+": 45,
+    "-": 45,
+}
+
+
+def parse_exp(tokens, min_prec=0):
+    left = parse_factor(tokens)
+    next_token = peek(tokens)
+    while (
+        next_token in BINARY_OPERATOR_PRECEDENCE
+        and BINARY_OPERATOR_PRECEDENCE[next_token] >= min_prec
+    ):
+        op = parse_binop(tokens)
+        right = parse_exp(tokens, BINARY_OPERATOR_PRECEDENCE[next_token] + 1)
+        left = asdl.BinaryAST(op, left, right)
+        next_token = peek(tokens)
+    return left
+
+
+def parse_factor(tokens):
     key, next_token = lexer.TOKEN.CONSTANT, peek(tokens)
     if lexer.TOKEN_PATTERNS[key].match(next_token):
         return asdl.ConstantAST(int(take_token(tokens)))
     elif next_token in ["~", "-"]:
-        return asdl.UnaryAST(parse_unop(tokens), parse_exp(tokens))
+        return asdl.UnaryAST(parse_unop(tokens), parse_factor(tokens))
     elif next_token == "(":
         take_token(tokens)
         inner_exp = parse_exp(tokens)
         expect(")", tokens)
         return inner_exp
-    raise SyntaxError(f"Malformed expression: {next_token}")
+    raise SyntaxError(f"Malformed factor: {next_token}")
 
 
 def parse_unop(tokens):
@@ -89,3 +112,19 @@ def parse_unop(tokens):
             return asdl.UnaryOperatorAST.NEGATE
         case _:
             raise SyntaxError(f"Unknown unary operator: '{token}'")
+
+
+def parse_binop(tokens):
+    match token := take_token(tokens):
+        case "*":
+            return asdl.BinaryOperatorAST.MULTIPLY
+        case "/":
+            return asdl.BinaryOperatorAST.DIVIDE
+        case "%":
+            return asdl.BinaryOperatorAST.REMAINDER
+        case "+":
+            return asdl.BinaryOperatorAST.ADD
+        case "-":
+            return asdl.BinaryOperatorAST.SUBTRACT
+        case _:
+            raise SyntaxError(f"Unknown binary operator: '{token}'")

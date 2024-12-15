@@ -15,6 +15,7 @@
 
 from test_common import TestCommon
 
+import asdl
 import parser
 import unittest
 
@@ -38,6 +39,71 @@ class TestParser(TestCommon):
             parser.parse(self.listing_2_4_tokens),
             self.listing_2_4_ast,
         )
+
+    def test_parse_exp(self):
+        self.assertEqual(
+            parser.parse_exp(["1", "+", "(", "2", "*", "3", ")", ";"]),
+            asdl.BinaryAST(
+                asdl.BinaryOperatorAST.ADD,
+                asdl.ConstantAST(1),
+                asdl.BinaryAST(
+                    asdl.BinaryOperatorAST.MULTIPLY,
+                    asdl.ConstantAST(2),
+                    asdl.ConstantAST(3),
+                ),
+            ),
+        )  # Figure 3-1
+
+        self.assertEqual(
+            parser.parse_exp(["(", "1", "+", "2", ")", "*", "3", ";"]),
+            asdl.BinaryAST(
+                asdl.BinaryOperatorAST.MULTIPLY,
+                asdl.BinaryAST(
+                    asdl.BinaryOperatorAST.ADD, asdl.ConstantAST(1), asdl.ConstantAST(2)
+                ),
+                asdl.ConstantAST(3),
+            ),
+        )  # Figure 3-2
+
+        self.assertEqual(
+            parser.parse_exp(["1", "+", "2", "*", "3", "+", "4", ";"]),
+            asdl.BinaryAST(
+                asdl.BinaryOperatorAST.ADD,
+                asdl.BinaryAST(
+                    asdl.BinaryOperatorAST.ADD,
+                    asdl.ConstantAST(1),
+                    asdl.BinaryAST(
+                        asdl.BinaryOperatorAST.MULTIPLY,
+                        asdl.ConstantAST(2),
+                        asdl.ConstantAST(3),
+                    ),
+                ),
+                asdl.ConstantAST(4),
+            ),
+        )  # Dealing with Precedence
+
+        self.assertEqual(
+            parser.parse_exp(
+                ["1", "*", "2", "-", "3", "*", "(", "4", "+", "5", ")", ";"]
+            ),
+            asdl.BinaryAST(
+                asdl.BinaryOperatorAST.SUBTRACT,
+                asdl.BinaryAST(
+                    asdl.BinaryOperatorAST.MULTIPLY,
+                    asdl.ConstantAST(1),
+                    asdl.ConstantAST(2),
+                ),
+                asdl.BinaryAST(
+                    asdl.BinaryOperatorAST.MULTIPLY,
+                    asdl.ConstantAST(3),
+                    asdl.BinaryAST(
+                        asdl.BinaryOperatorAST.ADD,
+                        asdl.ConstantAST(4),
+                        asdl.ConstantAST(5),
+                    ),
+                ),
+            ),
+        )  # Precedence Climbing in Action
 
 
 if __name__ == "__main__":

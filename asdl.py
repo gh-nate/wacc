@@ -18,6 +18,14 @@ from dataclasses import dataclass
 from enum import Enum, auto
 
 
+class BinaryOperatorAST(Enum):
+    ADD = auto()
+    SUBTRACT = auto()
+    MULTIPLY = auto()
+    DIVIDE = auto()
+    REMAINDER = auto()
+
+
 class UnaryOperator(Enum):
     pass
 
@@ -93,6 +101,13 @@ class ConstantAST(Exp):
 class UnaryAST(Exp):
     unary_operator: UnaryOperatorAST
     exp: Exp
+
+
+@dataclass
+class BinaryAST(Exp):
+    binary_operator: BinaryOperatorAST
+    lhs: Exp
+    rhs: Exp
 
 
 class Statement(ABC):
