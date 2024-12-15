@@ -46,6 +46,26 @@ def convert_instructions(instructions):
                     asdl.MovASM(convert_val(src), dst),
                     asdl.UnaryASM(convert_unary_operator(unop), dst),
                 ]
+            case asdl.BinaryTACKY(asdl.BinaryOperatorTACKY.DIVIDE, src1, src2, dst):
+                new_instructions += [
+                    asdl.MovASM(convert_val(src1), asdl.RegASM(asdl.Reg.AX)),
+                    asdl.CdqASM(),
+                    asdl.IdivASM(convert_val(src2)),
+                    asdl.MovASM(asdl.RegASM(asdl.Reg.AX), convert_val(dst)),
+                ]
+            case asdl.BinaryTACKY(asdl.BinaryOperatorTACKY.REMAINDER, src1, src2, dst):
+                new_instructions += [
+                    asdl.MovASM(convert_val(src1), asdl.RegASM(asdl.Reg.AX)),
+                    asdl.CdqASM(),
+                    asdl.IdivASM(convert_val(src2)),
+                    asdl.MovASM(asdl.RegASM(asdl.Reg.DX), convert_val(dst)),
+                ]
+            case asdl.BinaryTACKY(op, src1, src2, dst):
+                dst = convert_val(dst)
+                new_instructions += [
+                    asdl.MovASM(convert_val(src1), dst),
+                    asdl.BinaryASM(convert_binary_operator(op), convert_val(src2), dst),
+                ]
     return new_instructions
 
 
@@ -63,6 +83,16 @@ def convert_unary_operator(node):
             return asdl.UnaryOperatorASM.NOT
         case asdl.UnaryOperatorTACKY.NEGATE:
             return asdl.UnaryOperatorASM.NEG
+
+
+def convert_binary_operator(node):
+    match node:
+        case asdl.BinaryOperatorTACKY.ADD:
+            return asdl.BinaryOperatorASM.ADD
+        case asdl.BinaryOperatorTACKY.SUBTRACT:
+            return asdl.BinaryOperatorASM.SUB
+        case asdl.BinaryOperatorTACKY.MULTIPLY:
+            return asdl.BinaryOperatorASM.MULT
 
 
 def replace_pseudoregisters(tree):
@@ -91,14 +121,28 @@ def replace_pseudoregisters(tree):
                     identifier, stack_offset, identifiers_offsets
                 )
                 instructions[index] = asdl.UnaryASM(unary_operator, operand)
+            case asdl.BinaryASM(op, asdl.PseudoASM(x), asdl.PseudoASM(y)):
+                src, stack_offset = replace(x, stack_offset, identifiers_offsets)
+                dst, stack_offset = replace(y, stack_offset, identifiers_offsets)
+                instructions[index] = asdl.BinaryASM(op, src, dst)
+            case asdl.BinaryASM(op, asdl.PseudoASM(x), y):
+                src, stack_offset = replace(x, stack_offset, identifiers_offsets)
+                instructions[index] = asdl.BinaryASM(op, src, y)
+            case asdl.BinaryASM(op, x, asdl.PseudoASM(y)):
+                dst, stack_offset = replace(y, stack_offset, identifiers_offsets)
+                instructions[index] = asdl.BinaryASM(op, x, dst)
+            case asdl.IdivASM(asdl.PseudoASM(identifier)):
+                operand, stack_offset = replace(
+                    identifier, stack_offset, identifiers_offsets
+                )
+                instructions[index] = asdl.IdivASM(operand)
     return abs(stack_offset)
 
 
 def fix_instructions(tree, stack_offset):
-    index, instructions, reg = (
+    index, instructions = (
         0,
         tree.function_definition.instructions,
-        asdl.RegASM(asdl.Reg.R10),
     )
     instructions.insert(index, asdl.AllocateStackASM(stack_offset))
     index += 1
@@ -106,9 +150,62 @@ def fix_instructions(tree, stack_offset):
         offset = 1
         match instructions[index]:
             case asdl.MovASM(src, asdl.StackASM(stack_offset)):
-                instructions[index] = asdl.MovASM(src, reg)
+                instructions[index] = asdl.MovASM(src, asdl.RegASM(asdl.Reg.R10))
                 instructions.insert(
-                    index + offset, asdl.MovASM(reg, asdl.StackASM(stack_offset))
+                    index + offset,
+                    asdl.MovASM(asdl.RegASM(asdl.Reg.R10), asdl.StackASM(stack_offset)),
+                )
+                offset += 1
+            case asdl.IdivASM(asdl.ImmASM(i)):
+                instructions[index] = asdl.MovASM(
+                    asdl.ImmASM(i), asdl.RegASM(asdl.Reg.R10)
+                )
+                instructions.insert(
+                    index + offset, asdl.IdivASM(asdl.RegASM(asdl.Reg.R10))
+                )
+                offset += 1
+            case asdl.BinaryASM(
+                asdl.BinaryOperatorASM.ADD, src, asdl.StackASM(stack_offset)
+            ):
+                instructions[index] = asdl.MovASM(src, asdl.RegASM(asdl.Reg.R10))
+                instructions.insert(
+                    index + offset,
+                    asdl.BinaryASM(
+                        asdl.BinaryOperatorASM.ADD,
+                        asdl.RegASM(asdl.Reg.R10),
+                        asdl.StackASM(stack_offset),
+                    ),
+                )
+                offset += 1
+            case asdl.BinaryASM(
+                asdl.BinaryOperatorASM.SUB, src, asdl.StackASM(stack_offset)
+            ):
+                instructions[index] = asdl.MovASM(src, asdl.RegASM(asdl.Reg.R10))
+                instructions.insert(
+                    index + offset,
+                    asdl.BinaryASM(
+                        asdl.BinaryOperatorASM.SUB,
+                        asdl.RegASM(asdl.Reg.R10),
+                        asdl.StackASM(stack_offset),
+                    ),
+                )
+                offset += 1
+            case asdl.BinaryASM(
+                asdl.BinaryOperatorASM.MULT, src, asdl.StackASM(stack_offset)
+            ):
+                instructions[index] = asdl.MovASM(
+                    asdl.StackASM(stack_offset), asdl.RegASM(asdl.Reg.R11)
+                )
+                instructions.insert(
+                    index + offset,
+                    asdl.BinaryASM(
+                        asdl.BinaryOperatorASM.MULT, src, asdl.RegASM(asdl.Reg.R11)
+                    ),
+                )
+                offset += 1
+                instructions.insert(
+                    index + offset,
+                    asdl.MovASM(asdl.RegASM(asdl.Reg.R11), asdl.StackASM(stack_offset)),
                 )
                 offset += 1
         index += offset

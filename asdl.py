@@ -38,6 +38,12 @@ class BinaryOperatorTACKY(BinaryOperator):
     REMAINDER = auto()
 
 
+class BinaryOperatorASM(BinaryOperator):
+    ADD = auto()
+    SUB = auto()
+    MULT = auto()
+
+
 class UnaryOperator(Enum):
     pass
 
@@ -59,7 +65,9 @@ class UnaryOperatorASM(UnaryOperator):
 
 class Reg(Enum):
     AX = auto()
+    DX = auto()
     R10 = auto()
+    R11 = auto()
 
 
 class Operand(ABC):
@@ -165,6 +173,23 @@ class MovASM(Instruction):
 class UnaryASM(Instruction):
     unop: UnaryOperatorASM
     op: Operand
+
+
+@dataclass
+class BinaryASM(Instruction):
+    binop: BinaryOperatorASM
+    lhs: Operand
+    rhs: Operand
+
+
+@dataclass
+class IdivASM(Instruction):
+    operand: Operand
+
+
+class CdqASM(Instruction):
+    def __eq__(self, o):
+        return isinstance(o, CdqASM)
 
 
 @dataclass

@@ -15,6 +15,7 @@
 
 from test_common import TestCommon
 
+import asdl
 import codegen
 import unittest
 
@@ -41,6 +42,187 @@ class TestCodegen(TestCommon):
         self.assertEqual(
             codegen.convert(self.table_2_1_row_3_tacky),
             self.table_2_1_row_3_asm,
+        )
+
+        self.assertEqual(
+            codegen.convert(
+                asdl.ProgramTACKY(
+                    asdl.FunctionTACKY(
+                        "main",
+                        self.figure_3_1_tacky
+                        + [asdl.ReturnTACKY(asdl.VarTACKY("tmp.1"))],
+                    )
+                )
+            ),
+            asdl.ProgramASM(
+                asdl.FunctionASM(
+                    "main",
+                    [
+                        asdl.AllocateStackASM(8),
+                        asdl.MovASM(asdl.ImmASM(2), asdl.RegASM(asdl.Reg.R10)),
+                        asdl.MovASM(asdl.RegASM(asdl.Reg.R10), asdl.StackASM(-4)),
+                        asdl.MovASM(asdl.StackASM(-4), asdl.RegASM(asdl.Reg.R11)),
+                        asdl.BinaryASM(
+                            asdl.BinaryOperatorASM.MULT,
+                            asdl.ImmASM(3),
+                            asdl.RegASM(asdl.Reg.R11),
+                        ),
+                        asdl.MovASM(asdl.RegASM(asdl.Reg.R11), asdl.StackASM(-4)),
+                        asdl.MovASM(asdl.ImmASM(1), asdl.RegASM(asdl.Reg.R10)),
+                        asdl.MovASM(asdl.RegASM(asdl.Reg.R10), asdl.StackASM(-8)),
+                        asdl.MovASM(asdl.StackASM(-4), asdl.RegASM(asdl.Reg.R10)),
+                        asdl.BinaryASM(
+                            asdl.BinaryOperatorASM.ADD,
+                            asdl.RegASM(asdl.Reg.R10),
+                            asdl.StackASM(-8),
+                        ),
+                        asdl.MovASM(asdl.StackASM(-8), asdl.RegASM(asdl.Reg.AX)),
+                        asdl.RetASM(),
+                    ],
+                ),
+            ),
+        )
+
+        self.assertEqual(
+            codegen.convert(
+                asdl.ProgramTACKY(
+                    asdl.FunctionTACKY(
+                        "main",
+                        self.figure_3_2_tacky
+                        + [asdl.ReturnTACKY(asdl.VarTACKY("tmp.1"))],
+                    )
+                )
+            ),
+            asdl.ProgramASM(
+                asdl.FunctionASM(
+                    "main",
+                    [
+                        asdl.AllocateStackASM(8),
+                        asdl.MovASM(asdl.ImmASM(1), asdl.RegASM(asdl.Reg.R10)),
+                        asdl.MovASM(asdl.RegASM(asdl.Reg.R10), asdl.StackASM(-4)),
+                        asdl.MovASM(asdl.ImmASM(2), asdl.RegASM(asdl.Reg.R10)),
+                        asdl.BinaryASM(
+                            asdl.BinaryOperatorASM.ADD,
+                            asdl.RegASM(asdl.Reg.R10),
+                            asdl.StackASM(-4),
+                        ),
+                        asdl.MovASM(asdl.StackASM(-4), asdl.RegASM(asdl.Reg.R10)),
+                        asdl.MovASM(asdl.RegASM(asdl.Reg.R10), asdl.StackASM(-8)),
+                        asdl.MovASM(asdl.StackASM(-8), asdl.RegASM(asdl.Reg.R11)),
+                        asdl.BinaryASM(
+                            asdl.BinaryOperatorASM.MULT,
+                            asdl.ImmASM(3),
+                            asdl.RegASM(asdl.Reg.R11),
+                        ),
+                        asdl.MovASM(asdl.RegASM(asdl.Reg.R11), asdl.StackASM(-8)),
+                        asdl.MovASM(asdl.StackASM(-8), asdl.RegASM(asdl.Reg.AX)),
+                        asdl.RetASM(),
+                    ],
+                ),
+            ),
+        )
+
+        self.assertEqual(
+            codegen.convert(
+                asdl.ProgramTACKY(
+                    asdl.FunctionTACKY(
+                        "main",
+                        self.dealing_with_precedence_tacky
+                        + [asdl.ReturnTACKY(asdl.VarTACKY("tmp.2"))],
+                    )
+                )
+            ),
+            asdl.ProgramASM(
+                asdl.FunctionASM(
+                    "main",
+                    [
+                        asdl.AllocateStackASM(12),
+                        asdl.MovASM(asdl.ImmASM(2), asdl.RegASM(asdl.Reg.R10)),
+                        asdl.MovASM(asdl.RegASM(asdl.Reg.R10), asdl.StackASM(-4)),
+                        asdl.MovASM(asdl.StackASM(-4), asdl.RegASM(asdl.Reg.R11)),
+                        asdl.BinaryASM(
+                            asdl.BinaryOperatorASM.MULT,
+                            asdl.ImmASM(3),
+                            asdl.RegASM(asdl.Reg.R11),
+                        ),
+                        asdl.MovASM(asdl.RegASM(asdl.Reg.R11), asdl.StackASM(-4)),
+                        asdl.MovASM(asdl.ImmASM(1), asdl.RegASM(asdl.Reg.R10)),
+                        asdl.MovASM(asdl.RegASM(asdl.Reg.R10), asdl.StackASM(-8)),
+                        asdl.MovASM(asdl.StackASM(-4), asdl.RegASM(asdl.Reg.R10)),
+                        asdl.BinaryASM(
+                            asdl.BinaryOperatorASM.ADD,
+                            asdl.RegASM(asdl.Reg.R10),
+                            asdl.StackASM(-8),
+                        ),
+                        asdl.MovASM(asdl.StackASM(-8), asdl.RegASM(asdl.Reg.R10)),
+                        asdl.MovASM(asdl.RegASM(asdl.Reg.R10), asdl.StackASM(-12)),
+                        asdl.MovASM(asdl.ImmASM(4), asdl.RegASM(asdl.Reg.R10)),
+                        asdl.BinaryASM(
+                            asdl.BinaryOperatorASM.ADD,
+                            asdl.RegASM(asdl.Reg.R10),
+                            asdl.StackASM(-12),
+                        ),
+                        asdl.MovASM(asdl.StackASM(-12), asdl.RegASM(asdl.Reg.AX)),
+                        asdl.RetASM(),
+                    ],
+                ),
+            ),
+        )
+
+        self.assertEqual(
+            codegen.convert(
+                asdl.ProgramTACKY(
+                    asdl.FunctionTACKY(
+                        "main",
+                        self.precedence_climbing_in_action_tacky
+                        + [asdl.ReturnTACKY(asdl.VarTACKY("tmp.3"))],
+                    )
+                )
+            ),
+            asdl.ProgramASM(
+                asdl.FunctionASM(
+                    "main",
+                    [
+                        asdl.AllocateStackASM(16),
+                        asdl.MovASM(asdl.ImmASM(1), asdl.RegASM(asdl.Reg.R10)),
+                        asdl.MovASM(asdl.RegASM(asdl.Reg.R10), asdl.StackASM(-4)),
+                        asdl.MovASM(asdl.StackASM(-4), asdl.RegASM(asdl.Reg.R11)),
+                        asdl.BinaryASM(
+                            asdl.BinaryOperatorASM.MULT,
+                            asdl.ImmASM(2),
+                            asdl.RegASM(asdl.Reg.R11),
+                        ),
+                        asdl.MovASM(asdl.RegASM(asdl.Reg.R11), asdl.StackASM(-4)),
+                        asdl.MovASM(asdl.ImmASM(4), asdl.RegASM(asdl.Reg.R10)),
+                        asdl.MovASM(asdl.RegASM(asdl.Reg.R10), asdl.StackASM(-8)),
+                        asdl.MovASM(asdl.ImmASM(5), asdl.RegASM(asdl.Reg.R10)),
+                        asdl.BinaryASM(
+                            asdl.BinaryOperatorASM.ADD,
+                            asdl.RegASM(asdl.Reg.R10),
+                            asdl.StackASM(-8),
+                        ),
+                        asdl.MovASM(asdl.ImmASM(3), asdl.RegASM(asdl.Reg.R10)),
+                        asdl.MovASM(asdl.RegASM(asdl.Reg.R10), asdl.StackASM(-12)),
+                        asdl.MovASM(asdl.StackASM(-12), asdl.RegASM(asdl.Reg.R11)),
+                        asdl.BinaryASM(
+                            asdl.BinaryOperatorASM.MULT,
+                            asdl.StackASM(-8),
+                            asdl.RegASM(asdl.Reg.R11),
+                        ),
+                        asdl.MovASM(asdl.RegASM(asdl.Reg.R11), asdl.StackASM(-12)),
+                        asdl.MovASM(asdl.StackASM(-4), asdl.RegASM(asdl.Reg.R10)),
+                        asdl.MovASM(asdl.RegASM(asdl.Reg.R10), asdl.StackASM(-16)),
+                        asdl.MovASM(asdl.StackASM(-12), asdl.RegASM(asdl.Reg.R10)),
+                        asdl.BinaryASM(
+                            asdl.BinaryOperatorASM.SUB,
+                            asdl.RegASM(asdl.Reg.R10),
+                            asdl.StackASM(-16),
+                        ),
+                        asdl.MovASM(asdl.StackASM(-16), asdl.RegASM(asdl.Reg.AX)),
+                        asdl.RetASM(),
+                    ],
+                ),
+            ),
         )
 
 

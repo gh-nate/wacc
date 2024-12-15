@@ -82,20 +82,7 @@ class TestTacky(TestCommon):
         tacky.convert_tacky(g, self.figure_3_1_ast, instructions)
         self.assertEqual(
             instructions,
-            [
-                asdl.BinaryTACKY(
-                    asdl.BinaryOperatorTACKY.MULTIPLY,
-                    asdl.ConstantTACKY(2),
-                    asdl.ConstantTACKY(3),
-                    asdl.VarTACKY("tmp.0"),
-                ),
-                asdl.BinaryTACKY(
-                    asdl.BinaryOperatorTACKY.ADD,
-                    asdl.ConstantTACKY(1),
-                    asdl.VarTACKY("tmp.0"),
-                    asdl.VarTACKY("tmp.1"),
-                ),
-            ],
+            self.figure_3_1_tacky,
         )
 
         g = tacky.mk_tmp()
@@ -103,20 +90,7 @@ class TestTacky(TestCommon):
         tacky.convert_tacky(g, self.figure_3_2_ast, instructions)
         self.assertEqual(
             instructions,
-            [
-                asdl.BinaryTACKY(
-                    asdl.BinaryOperatorTACKY.ADD,
-                    asdl.ConstantTACKY(1),
-                    asdl.ConstantTACKY(2),
-                    asdl.VarTACKY("tmp.0"),
-                ),
-                asdl.BinaryTACKY(
-                    asdl.BinaryOperatorTACKY.MULTIPLY,
-                    asdl.VarTACKY("tmp.0"),
-                    asdl.ConstantTACKY(3),
-                    asdl.VarTACKY("tmp.1"),
-                ),
-            ],
+            self.figure_3_2_tacky,
         )
 
         g = tacky.mk_tmp()
@@ -124,26 +98,7 @@ class TestTacky(TestCommon):
         tacky.convert_tacky(g, self.dealing_with_precedence_ast, instructions)
         self.assertEqual(
             instructions,
-            [
-                asdl.BinaryTACKY(
-                    asdl.BinaryOperatorTACKY.MULTIPLY,
-                    asdl.ConstantTACKY(2),
-                    asdl.ConstantTACKY(3),
-                    asdl.VarTACKY("tmp.0"),
-                ),
-                asdl.BinaryTACKY(
-                    asdl.BinaryOperatorTACKY.ADD,
-                    asdl.ConstantTACKY(1),
-                    asdl.VarTACKY("tmp.0"),
-                    asdl.VarTACKY("tmp.1"),
-                ),
-                asdl.BinaryTACKY(
-                    asdl.BinaryOperatorTACKY.ADD,
-                    asdl.VarTACKY("tmp.1"),
-                    asdl.ConstantTACKY(4),
-                    asdl.VarTACKY("tmp.2"),
-                ),
-            ],
+            self.dealing_with_precedence_tacky,
         )
 
         g = tacky.mk_tmp()
@@ -151,32 +106,7 @@ class TestTacky(TestCommon):
         tacky.convert_tacky(g, self.precedence_climbing_in_action_ast, instructions)
         self.assertEqual(
             instructions,
-            [
-                asdl.BinaryTACKY(
-                    asdl.BinaryOperatorTACKY.MULTIPLY,
-                    asdl.ConstantTACKY(1),
-                    asdl.ConstantTACKY(2),
-                    asdl.VarTACKY("tmp.0"),
-                ),
-                asdl.BinaryTACKY(
-                    asdl.BinaryOperatorTACKY.ADD,
-                    asdl.ConstantTACKY(4),
-                    asdl.ConstantTACKY(5),
-                    asdl.VarTACKY("tmp.1"),
-                ),
-                asdl.BinaryTACKY(
-                    asdl.BinaryOperatorTACKY.MULTIPLY,
-                    asdl.ConstantTACKY(3),
-                    asdl.VarTACKY("tmp.1"),
-                    asdl.VarTACKY("tmp.2"),
-                ),
-                asdl.BinaryTACKY(
-                    asdl.BinaryOperatorTACKY.SUBTRACT,
-                    asdl.VarTACKY("tmp.0"),
-                    asdl.VarTACKY("tmp.2"),
-                    asdl.VarTACKY("tmp.3"),
-                ),
-            ],
+            self.precedence_climbing_in_action_tacky,
         )
 
 

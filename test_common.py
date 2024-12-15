@@ -274,6 +274,20 @@ class TestCommon(unittest.TestCase):
                 asdl.ConstantAST(3),
             ),
         )
+        self.figure_3_1_tacky = [
+            asdl.BinaryTACKY(
+                asdl.BinaryOperatorTACKY.MULTIPLY,
+                asdl.ConstantTACKY(2),
+                asdl.ConstantTACKY(3),
+                asdl.VarTACKY("tmp.0"),
+            ),
+            asdl.BinaryTACKY(
+                asdl.BinaryOperatorTACKY.ADD,
+                asdl.ConstantTACKY(1),
+                asdl.VarTACKY("tmp.0"),
+                asdl.VarTACKY("tmp.1"),
+            ),
+        ]
 
         self.figure_3_2_ast = asdl.BinaryAST(
             asdl.BinaryOperatorAST.MULTIPLY,
@@ -282,6 +296,20 @@ class TestCommon(unittest.TestCase):
             ),
             asdl.ConstantAST(3),
         )
+        self.figure_3_2_tacky = [
+            asdl.BinaryTACKY(
+                asdl.BinaryOperatorTACKY.ADD,
+                asdl.ConstantTACKY(1),
+                asdl.ConstantTACKY(2),
+                asdl.VarTACKY("tmp.0"),
+            ),
+            asdl.BinaryTACKY(
+                asdl.BinaryOperatorTACKY.MULTIPLY,
+                asdl.VarTACKY("tmp.0"),
+                asdl.ConstantTACKY(3),
+                asdl.VarTACKY("tmp.1"),
+            ),
+        ]
 
         self.dealing_with_precedence_ast = asdl.BinaryAST(
             asdl.BinaryOperatorAST.ADD,
@@ -296,6 +324,26 @@ class TestCommon(unittest.TestCase):
             ),
             asdl.ConstantAST(4),
         )
+        self.dealing_with_precedence_tacky = [
+            asdl.BinaryTACKY(
+                asdl.BinaryOperatorTACKY.MULTIPLY,
+                asdl.ConstantTACKY(2),
+                asdl.ConstantTACKY(3),
+                asdl.VarTACKY("tmp.0"),
+            ),
+            asdl.BinaryTACKY(
+                asdl.BinaryOperatorTACKY.ADD,
+                asdl.ConstantTACKY(1),
+                asdl.VarTACKY("tmp.0"),
+                asdl.VarTACKY("tmp.1"),
+            ),
+            asdl.BinaryTACKY(
+                asdl.BinaryOperatorTACKY.ADD,
+                asdl.VarTACKY("tmp.1"),
+                asdl.ConstantTACKY(4),
+                asdl.VarTACKY("tmp.2"),
+            ),
+        ]
 
         self.precedence_climbing_in_action_ast = asdl.BinaryAST(
             asdl.BinaryOperatorAST.SUBTRACT,
@@ -314,3 +362,29 @@ class TestCommon(unittest.TestCase):
                 ),
             ),
         )
+        self.precedence_climbing_in_action_tacky = [
+            asdl.BinaryTACKY(
+                asdl.BinaryOperatorTACKY.MULTIPLY,
+                asdl.ConstantTACKY(1),
+                asdl.ConstantTACKY(2),
+                asdl.VarTACKY("tmp.0"),
+            ),
+            asdl.BinaryTACKY(
+                asdl.BinaryOperatorTACKY.ADD,
+                asdl.ConstantTACKY(4),
+                asdl.ConstantTACKY(5),
+                asdl.VarTACKY("tmp.1"),
+            ),
+            asdl.BinaryTACKY(
+                asdl.BinaryOperatorTACKY.MULTIPLY,
+                asdl.ConstantTACKY(3),
+                asdl.VarTACKY("tmp.1"),
+                asdl.VarTACKY("tmp.2"),
+            ),
+            asdl.BinaryTACKY(
+                asdl.BinaryOperatorTACKY.SUBTRACT,
+                asdl.VarTACKY("tmp.0"),
+                asdl.VarTACKY("tmp.2"),
+                asdl.VarTACKY("tmp.3"),
+            ),
+        ]
