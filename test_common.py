@@ -264,3 +264,53 @@ class TestCommon(unittest.TestCase):
                 ],
             ),
         )
+
+        self.figure_3_1_ast = asdl.BinaryAST(
+            asdl.BinaryOperatorAST.ADD,
+            asdl.ConstantAST(1),
+            asdl.BinaryAST(
+                asdl.BinaryOperatorAST.MULTIPLY,
+                asdl.ConstantAST(2),
+                asdl.ConstantAST(3),
+            ),
+        )
+
+        self.figure_3_2_ast = asdl.BinaryAST(
+            asdl.BinaryOperatorAST.MULTIPLY,
+            asdl.BinaryAST(
+                asdl.BinaryOperatorAST.ADD, asdl.ConstantAST(1), asdl.ConstantAST(2)
+            ),
+            asdl.ConstantAST(3),
+        )
+
+        self.dealing_with_precedence_ast = asdl.BinaryAST(
+            asdl.BinaryOperatorAST.ADD,
+            asdl.BinaryAST(
+                asdl.BinaryOperatorAST.ADD,
+                asdl.ConstantAST(1),
+                asdl.BinaryAST(
+                    asdl.BinaryOperatorAST.MULTIPLY,
+                    asdl.ConstantAST(2),
+                    asdl.ConstantAST(3),
+                ),
+            ),
+            asdl.ConstantAST(4),
+        )
+
+        self.precedence_climbing_in_action_ast = asdl.BinaryAST(
+            asdl.BinaryOperatorAST.SUBTRACT,
+            asdl.BinaryAST(
+                asdl.BinaryOperatorAST.MULTIPLY,
+                asdl.ConstantAST(1),
+                asdl.ConstantAST(2),
+            ),
+            asdl.BinaryAST(
+                asdl.BinaryOperatorAST.MULTIPLY,
+                asdl.ConstantAST(3),
+                asdl.BinaryAST(
+                    asdl.BinaryOperatorAST.ADD,
+                    asdl.ConstantAST(4),
+                    asdl.ConstantAST(5),
+                ),
+            ),
+        )

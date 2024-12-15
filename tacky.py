@@ -16,7 +16,7 @@
 import asdl
 
 
-def _mk_tmp():
+def mk_tmp():
     count = 0
     while True:
         yield f"tmp.{count}"
@@ -40,7 +40,7 @@ def convert_function_definition(node):
 
 
 def convert_statement(node):
-    g, instructions = _mk_tmp(), []
+    g, instructions = mk_tmp(), []
     v = convert_tacky(g, node.exp, instructions)
     instructions.append(asdl.ReturnTACKY(v))
     return instructions
@@ -57,6 +57,14 @@ def convert_tacky(g, node, instructions):
             tacky_op = convert_unop(op)
             instructions.append(asdl.UnaryTACKY(tacky_op, src, dst))
             return dst
+        case asdl.BinaryAST(op, e1, e2):
+            v1 = convert_tacky(g, e1, instructions)
+            v2 = convert_tacky(g, e2, instructions)
+            dst_name = make_temporary(g)
+            dst = asdl.VarTACKY(dst_name)
+            tacky_op = convert_binop(op)
+            instructions.append(asdl.BinaryTACKY(tacky_op, v1, v2, dst))
+            return dst
 
 
 def convert_unop(op):
@@ -65,3 +73,17 @@ def convert_unop(op):
             return asdl.UnaryOperatorTACKY.COMPLEMENT
         case asdl.UnaryOperatorAST.NEGATE:
             return asdl.UnaryOperatorTACKY.NEGATE
+
+
+def convert_binop(op):
+    match op:
+        case asdl.BinaryOperatorAST.ADD:
+            return asdl.BinaryOperatorTACKY.ADD
+        case asdl.BinaryOperatorAST.SUBTRACT:
+            return asdl.BinaryOperatorTACKY.SUBTRACT
+        case asdl.BinaryOperatorAST.MULTIPLY:
+            return asdl.BinaryOperatorTACKY.MULTIPLY
+        case asdl.BinaryOperatorAST.DIVIDE:
+            return asdl.BinaryOperatorTACKY.DIVIDE
+        case asdl.BinaryOperatorAST.REMAINDER:
+            return asdl.BinaryOperatorTACKY.REMAINDER

@@ -18,7 +18,19 @@ from dataclasses import dataclass
 from enum import Enum, auto
 
 
-class BinaryOperatorAST(Enum):
+class BinaryOperator(Enum):
+    pass
+
+
+class BinaryOperatorAST(BinaryOperator):
+    ADD = auto()
+    SUBTRACT = auto()
+    MULTIPLY = auto()
+    DIVIDE = auto()
+    REMAINDER = auto()
+
+
+class BinaryOperatorTACKY(BinaryOperator):
     ADD = auto()
     SUBTRACT = auto()
     MULTIPLY = auto()
@@ -132,6 +144,14 @@ class ReturnTACKY(Instruction):
 class UnaryTACKY(Instruction):
     unary_operator: UnaryOperatorTACKY
     src: Val
+    dst: Val
+
+
+@dataclass
+class BinaryTACKY(Instruction):
+    binary_operator: BinaryOperatorTACKY
+    src1: Val
+    src2: Val
     dst: Val
 
 
