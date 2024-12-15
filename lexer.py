@@ -31,6 +31,10 @@ class TOKEN(Enum):
     BITWISE_COMPLEMENT_OPERATOR = auto()
     NEGATION_OPERATOR = auto()
     DECREMENT_OPERATOR = auto()
+    ADDITION_OPERATOR = auto()
+    MULTIPLICATION_OPERATOR = auto()
+    DIVISION_OPERATOR = auto()
+    REMAINDER_OPERATOR = auto()
 
 
 TOKEN_PATTERNS = {
@@ -47,6 +51,10 @@ TOKEN_PATTERNS = {
     TOKEN.BITWISE_COMPLEMENT_OPERATOR: re.compile(r"~"),
     TOKEN.NEGATION_OPERATOR: re.compile(r"-"),
     TOKEN.DECREMENT_OPERATOR: re.compile(r"--"),
+    TOKEN.ADDITION_OPERATOR: re.compile(r"\+"),
+    TOKEN.MULTIPLICATION_OPERATOR: re.compile(r"\*"),
+    TOKEN.DIVISION_OPERATOR: re.compile(r"/"),
+    TOKEN.REMAINDER_OPERATOR: re.compile(r"%"),
 }
 
 

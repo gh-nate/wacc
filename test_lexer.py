@@ -41,6 +41,25 @@ class TestLexer(TestCommon):
             self.listing_2_4_tokens,
         )
 
+        for binop in ["-", "+", "*", "/", "%"]:
+            self.assertEqual(
+                lexer.tokenize("int main(void) {\n\treturn 2 " + binop + " 2;\n}\n"),
+                [
+                    "int",
+                    "main",
+                    "(",
+                    "void",
+                    ")",
+                    "{",
+                    "return",
+                    "2",
+                    binop,
+                    "2",
+                    ";",
+                    "}",
+                ],
+            )
+
 
 if __name__ == "__main__":
     unittest.main()
