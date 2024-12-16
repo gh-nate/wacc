@@ -73,6 +73,14 @@ BINARY_OPERATOR_PRECEDENCE = {
     "%": 50,
     "+": 45,
     "-": 45,
+    "<": 35,
+    "<=": 35,
+    ">": 35,
+    ">=": 35,
+    "==": 30,
+    "!=": 30,
+    "&&": 10,
+    "||": 5,
 }
 
 
@@ -94,7 +102,7 @@ def parse_factor(tokens):
     key, next_token = lexer.TOKEN.CONSTANT, peek(tokens)
     if lexer.TOKEN_PATTERNS[key].match(next_token):
         return asdl.ConstantAST(int(take_token(tokens)))
-    elif next_token in ["~", "-"]:
+    elif next_token in ["~", "-", "!"]:
         return asdl.UnaryAST(parse_unop(tokens), parse_factor(tokens))
     elif next_token == "(":
         take_token(tokens)
@@ -110,6 +118,8 @@ def parse_unop(tokens):
             return asdl.UnaryOperatorAST.COMPLEMENT
         case "-":
             return asdl.UnaryOperatorAST.NEGATE
+        case "!":
+            return asdl.UnaryOperatorAST.NOT
         case _:
             raise SyntaxError(f"Unknown unary operator: '{token}'")
 
@@ -126,5 +136,21 @@ def parse_binop(tokens):
             return asdl.BinaryOperatorAST.ADD
         case "-":
             return asdl.BinaryOperatorAST.SUBTRACT
+        case "<":
+            return asdl.BinaryOperatorAST.LESS_THAN
+        case "<=":
+            return asdl.BinaryOperatorAST.LESS_OR_EQUAL
+        case ">":
+            return asdl.BinaryOperatorAST.GREATER_THAN
+        case ">=":
+            return asdl.BinaryOperatorAST.GREATER_OR_EQUAL
+        case "==":
+            return asdl.BinaryOperatorAST.EQUAL
+        case "!=":
+            return asdl.BinaryOperatorAST.NOT_EQUAL
+        case "&&":
+            return asdl.BinaryOperatorAST.AND
+        case "||":
+            return asdl.BinaryOperatorAST.OR
         case _:
             raise SyntaxError(f"Unknown binary operator: '{token}'")

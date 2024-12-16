@@ -15,6 +15,7 @@
 
 from test_common import TestCommon
 
+import asdl
 import parser
 import unittest
 
@@ -60,6 +61,23 @@ class TestParser(TestCommon):
                 ["1", "*", "2", "-", "3", "*", "(", "4", "+", "5", ")", ";"]
             ),
             self.precedence_climbing_in_action_ast,
+        )
+
+        self.assertEqual(
+            parser.parse_exp(["!", "2", ";"]),
+            asdl.UnaryAST(
+                asdl.UnaryOperatorAST.NOT,
+                asdl.ConstantAST(2),
+            ),
+        )
+
+        self.assertEqual(
+            parser.parse_exp(["2", "&&", "2", ";"]),
+            asdl.BinaryAST(
+                asdl.BinaryOperatorAST.AND,
+                asdl.ConstantAST(2),
+                asdl.ConstantAST(2),
+            ),
         )
 
 

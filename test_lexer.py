@@ -16,6 +16,7 @@
 from test_common import TestCommon
 
 import lexer
+import parser
 import unittest
 
 
@@ -41,21 +42,7 @@ class TestLexer(TestCommon):
             self.listing_2_4_tokens,
         )
 
-        for binop in [
-            "-",
-            "+",
-            "*",
-            "/",
-            "%",
-            "&&",
-            "||",
-            "==",
-            "!=",
-            "<",
-            ">",
-            "<=",
-            ">=",
-        ]:
+        for binop in parser.BINARY_OPERATOR_PRECEDENCE.keys():
             self.assertEqual(
                 lexer.tokenize("int main(void) {\n\treturn 2 " + binop + " 2;\n}\n"),
                 [
