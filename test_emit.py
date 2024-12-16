@@ -75,6 +75,71 @@ class TestEmit(TestCommon):
         s += "\tmovl -12(%rbp), %eax\n"
         self.assertEqual(emit.output(self.table_2_1_row_3_asm), fill(s))
 
+        s = "\tsubq $8, %rsp\n"
+        s += "\tmovl $2, %r10d\n"
+        s += "\tmovl %r10d, -4(%rbp)\n"
+        s += "\tmovl -4(%rbp), %r11d\n"
+        s += "\timull $3, %r11d\n"
+        s += "\tmovl %r11d, -4(%rbp)\n"
+        s += "\tmovl $1, %r10d\n"
+        s += "\tmovl %r10d, -8(%rbp)\n"
+        s += "\tmovl -4(%rbp), %r10d\n"
+        s += "\taddl %r10d, -8(%rbp)\n"
+        s += "\tmovl -8(%rbp), %eax\n"
+        self.assertEqual(emit.output(self.figure_3_1_asm), fill(s))
+
+        s = "\tsubq $8, %rsp\n"
+        s += "\tmovl $1, %r10d\n"
+        s += "\tmovl %r10d, -4(%rbp)\n"
+        s += "\tmovl $2, %r10d\n"
+        s += "\taddl %r10d, -4(%rbp)\n"
+        s += "\tmovl -4(%rbp), %r10d\n"
+        s += "\tmovl %r10d, -8(%rbp)\n"
+        s += "\tmovl -8(%rbp), %r11d\n"
+        s += "\timull $3, %r11d\n"
+        s += "\tmovl %r11d, -8(%rbp)\n"
+        s += "\tmovl -8(%rbp), %eax\n"
+        self.assertEqual(emit.output(self.figure_3_2_asm), fill(s))
+
+        s = "\tsubq $12, %rsp\n"
+        s += "\tmovl $2, %r10d\n"
+        s += "\tmovl %r10d, -4(%rbp)\n"
+        s += "\tmovl -4(%rbp), %r11d\n"
+        s += "\timull $3, %r11d\n"
+        s += "\tmovl %r11d, -4(%rbp)\n"
+        s += "\tmovl $1, %r10d\n"
+        s += "\tmovl %r10d, -8(%rbp)\n"
+        s += "\tmovl -4(%rbp), %r10d\n"
+        s += "\taddl %r10d, -8(%rbp)\n"
+        s += "\tmovl -8(%rbp), %r10d\n"
+        s += "\tmovl %r10d, -12(%rbp)\n"
+        s += "\tmovl $4, %r10d\n"
+        s += "\taddl %r10d, -12(%rbp)\n"
+        s += "\tmovl -12(%rbp), %eax\n"
+        self.assertEqual(emit.output(self.dealing_with_precedence_asm), fill(s))
+
+        s = "\tsubq $16, %rsp\n"
+        s += "\tmovl $1, %r10d\n"
+        s += "\tmovl %r10d, -4(%rbp)\n"
+        s += "\tmovl -4(%rbp), %r11d\n"
+        s += "\timull $2, %r11d\n"
+        s += "\tmovl %r11d, -4(%rbp)\n"
+        s += "\tmovl $4, %r10d\n"
+        s += "\tmovl %r10d, -8(%rbp)\n"
+        s += "\tmovl $5, %r10d\n"
+        s += "\taddl %r10d, -8(%rbp)\n"
+        s += "\tmovl $3, %r10d\n"
+        s += "\tmovl %r10d, -12(%rbp)\n"
+        s += "\tmovl -12(%rbp), %r11d\n"
+        s += "\timull -8(%rbp), %r11d\n"
+        s += "\tmovl %r11d, -12(%rbp)\n"
+        s += "\tmovl -4(%rbp), %r10d\n"
+        s += "\tmovl %r10d, -16(%rbp)\n"
+        s += "\tmovl -12(%rbp), %r10d\n"
+        s += "\tsubl %r10d, -16(%rbp)\n"
+        s += "\tmovl -16(%rbp), %eax\n"
+        self.assertEqual(emit.output(self.precedence_climbing_in_action_asm), fill(s))
+
 
 if __name__ == "__main__":
     unittest.main()

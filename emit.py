@@ -63,6 +63,24 @@ def output_instructions(instructions, s):
                         s.write("\tnotl ")
                 output_operand(operand, s)
                 s.write("\n")
+            case asdl.BinaryASM(binary_operator, src, dst):
+                match binary_operator:
+                    case asdl.BinaryOperatorASM.ADD:
+                        s.write("\taddl ")
+                    case asdl.BinaryOperatorASM.SUB:
+                        s.write("\tsubl ")
+                    case asdl.BinaryOperatorASM.MULT:
+                        s.write("\timull ")
+                output_operand(src, s)
+                s.write(", ")
+                output_operand(dst, s)
+                s.write("\n")
+            case asdl.IdivASM(operand):
+                s.write("\tidivl ")
+                output_operand(operand, s)
+                s.write("\n")
+            case asdl.CdqASM():
+                print("\tcdq", file=s)
             case asdl.AllocateStackASM(i):
                 print(f"\tsubq ${i}, %rsp", file=s)
 
@@ -71,8 +89,12 @@ def output_operand(node, s):
     match node:
         case asdl.RegASM(asdl.Reg.AX):
             s.write("%eax")
+        case asdl.RegASM(asdl.Reg.DX):
+            s.write("%edx")
         case asdl.RegASM(asdl.Reg.R10):
             s.write("%r10d")
+        case asdl.RegASM(asdl.Reg.R11):
+            s.write("%r11d")
         case asdl.StackASM(i):
             s.write(f"{i}(%rbp)")
         case asdl.ImmASM(int):
