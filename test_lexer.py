@@ -41,7 +41,21 @@ class TestLexer(TestCommon):
             self.listing_2_4_tokens,
         )
 
-        for binop in ["-", "+", "*", "/", "%"]:
+        for binop in [
+            "-",
+            "+",
+            "*",
+            "/",
+            "%",
+            "&&",
+            "||",
+            "==",
+            "!=",
+            "<",
+            ">",
+            "<=",
+            ">=",
+        ]:
             self.assertEqual(
                 lexer.tokenize("int main(void) {\n\treturn 2 " + binop + " 2;\n}\n"),
                 [
@@ -59,6 +73,11 @@ class TestLexer(TestCommon):
                     "}",
                 ],
             )
+
+        self.assertEqual(
+            lexer.tokenize("int main(void) {\n\treturn !2;\n}\n"),
+            ["int", "main", "(", "void", ")", "{", "return", "!", "2", ";", "}"],
+        )
 
 
 if __name__ == "__main__":

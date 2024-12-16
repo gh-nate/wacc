@@ -13,49 +13,40 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from enum import Enum, auto
+from enum import Enum
 import re
 
 
 class TOKEN(Enum):
-    IDENTIFIER = auto()
-    CONSTANT = auto()
-    INT_KEYWORD = auto()
-    VOID_KEYWORD = auto()
-    RETURN_KEYWORD = auto()
-    OPEN_PARENTHESIS = auto()
-    CLOSE_PARENTHESIS = auto()
-    OPEN_BRACE = auto()
-    CLOSE_BRACE = auto()
-    SEMICOLON = auto()
-    BITWISE_COMPLEMENT_OPERATOR = auto()
-    NEGATION_OPERATOR = auto()
-    DECREMENT_OPERATOR = auto()
-    ADDITION_OPERATOR = auto()
-    MULTIPLICATION_OPERATOR = auto()
-    DIVISION_OPERATOR = auto()
-    REMAINDER_OPERATOR = auto()
+    IDENTIFIER = r"[a-zA-Z_]\w*\b"
+    CONSTANT = r"[0-9]+\b"
+    INT_KEYWORD = r"int\b"
+    VOID_KEYWORD = r"void\b"
+    RETURN_KEYWORD = r"return\b"
+    OPEN_PARENTHESIS = r"\("
+    CLOSE_PARENTHESIS = r"\)"
+    OPEN_BRACE = r"{"
+    CLOSE_BRACE = r"}"
+    SEMICOLON = r";"
+    BITWISE_COMPLEMENT_OPERATOR = r"~"
+    NEGATION_OPERATOR = r"-"
+    DECREMENT_OPERATOR = r"--"
+    ADDITION_OPERATOR = r"\+"
+    MULTIPLICATION_OPERATOR = r"\*"
+    DIVISION_OPERATOR = r"/"
+    REMAINDER_OPERATOR = r"%"
+    LOGICAL_NOT_OPERATOR = r"!"
+    LOGICAL_AND_OPERATOR = r"&&"
+    LOGICAL_OR_OPERATOR = r"\|\|"
+    EQUAL_TO_OPERATOR = r"=="
+    NOT_EQUAL_TO_OPERATOR = r"!="
+    LESS_THAN_OPERATOR = r"<"
+    GREATER_THAN_OPERATOR = r">"
+    LESS_THAN_OR_EQUAL_TO_OPERATOR = r"<="
+    GREATER_THAN_OR_EQUAL_TO_OPERATOR = r">="
 
 
-TOKEN_PATTERNS = {
-    TOKEN.IDENTIFIER: re.compile(r"[a-zA-Z_]\w*\b"),
-    TOKEN.CONSTANT: re.compile(r"[0-9]+\b"),
-    TOKEN.INT_KEYWORD: re.compile(r"int\b"),
-    TOKEN.VOID_KEYWORD: re.compile(r"void\b"),
-    TOKEN.RETURN_KEYWORD: re.compile(r"return\b"),
-    TOKEN.OPEN_PARENTHESIS: re.compile(r"\("),
-    TOKEN.CLOSE_PARENTHESIS: re.compile(r"\)"),
-    TOKEN.OPEN_BRACE: re.compile(r"{"),
-    TOKEN.CLOSE_BRACE: re.compile(r"}"),
-    TOKEN.SEMICOLON: re.compile(r";"),
-    TOKEN.BITWISE_COMPLEMENT_OPERATOR: re.compile(r"~"),
-    TOKEN.NEGATION_OPERATOR: re.compile(r"-"),
-    TOKEN.DECREMENT_OPERATOR: re.compile(r"--"),
-    TOKEN.ADDITION_OPERATOR: re.compile(r"\+"),
-    TOKEN.MULTIPLICATION_OPERATOR: re.compile(r"\*"),
-    TOKEN.DIVISION_OPERATOR: re.compile(r"/"),
-    TOKEN.REMAINDER_OPERATOR: re.compile(r"%"),
-}
+TOKEN_PATTERNS = {t: re.compile(t.value) for t in TOKEN}
 
 
 def tokenize(s):
