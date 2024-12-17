@@ -16,15 +16,30 @@
 import asdl
 
 
-def mk_tmp():
-    count = 0
-    while True:
-        yield f"tmp.{count}"
-        count += 1
+class G:
+    def __init__(self):
+        self.temp_vars = self._mk_inc("tmp.")
+        self.and_false = self._mk_inc("and_false")
+        self.or_true = self._mk_inc("or_true")
+        self.end = self._mk_inc("end")
 
+    def _mk_inc(self, prefix):
+        count = 0
+        while True:
+            yield f"{prefix}{count}"
+            count += 1
 
-def make_temporary(g):
-    return next(g)
+    def make_temp_vars(self):
+        return next(self.temp_vars)
+
+    def make_and_false_label(self):
+        return next(self.and_false)
+
+    def make_or_true_label(self):
+        return next(self.or_true)
+
+    def make_end_label(self):
+        return next(self.end)
 
 
 def convert(tree):
@@ -40,7 +55,7 @@ def convert_function_definition(node):
 
 
 def convert_statement(node):
-    g, instructions = mk_tmp(), []
+    g, instructions = G(), []
     v = convert_tacky(g, node.exp, instructions)
     instructions.append(asdl.ReturnTACKY(v))
     return instructions
@@ -52,18 +67,47 @@ def convert_tacky(g, node, instructions):
             return asdl.ConstantTACKY(int)
         case asdl.UnaryAST(op, inner):
             src = convert_tacky(g, inner, instructions)
-            dst_name = make_temporary(g)
-            dst = asdl.VarTACKY(dst_name)
+            dst = asdl.VarTACKY(g.make_temp_vars())
             tacky_op = convert_unop(op)
             instructions.append(asdl.UnaryTACKY(tacky_op, src, dst))
             return dst
         case asdl.BinaryAST(op, e1, e2):
             v1 = convert_tacky(g, e1, instructions)
-            v2 = convert_tacky(g, e2, instructions)
-            dst_name = make_temporary(g)
-            dst = asdl.VarTACKY(dst_name)
-            tacky_op = convert_binop(op)
-            instructions.append(asdl.BinaryTACKY(tacky_op, v1, v2, dst))
+            match op:
+                case asdl.BinaryOperatorAST.AND:
+                    end_label, false_label = (
+                        g.make_end_label(),
+                        g.make_and_false_label(),
+                    )
+                    instructions.append(asdl.JumpIfZeroTACKY(v1, false_label))
+                    v2 = convert_tacky(g, e2, instructions)
+                    dst = asdl.VarTACKY(g.make_temp_vars())
+                    instructions += [
+                        asdl.JumpIfZeroTACKY(v2, false_label),
+                        asdl.CopyTACKY(asdl.ConstantTACKY(1), dst),
+                        asdl.JumpTACKY(end_label),
+                        asdl.LabelTACKY(false_label),
+                        asdl.CopyTACKY(asdl.ConstantTACKY(0), dst),
+                        asdl.LabelTACKY(end_label),
+                    ]
+                case asdl.BinaryOperatorAST.OR:
+                    end_label, true_label = g.make_end_label(), g.make_or_true_label()
+                    instructions.append(asdl.JumpIfNotZeroTACKY(v1, true_label))
+                    v2 = convert_tacky(g, e2, instructions)
+                    dst = asdl.VarTACKY(g.make_temp_vars())
+                    instructions += [
+                        asdl.JumpIfNotZeroTACKY(v2, true_label),
+                        asdl.CopyTACKY(asdl.ConstantTACKY(0), dst),
+                        asdl.JumpTACKY(end_label),
+                        asdl.LabelTACKY(true_label),
+                        asdl.CopyTACKY(asdl.ConstantTACKY(1), dst),
+                        asdl.LabelTACKY(end_label),
+                    ]
+                case _:
+                    v2 = convert_tacky(g, e2, instructions)
+                    dst = asdl.VarTACKY(g.make_temp_vars())
+                    tacky_op = convert_binop(op)
+                    instructions.append(asdl.BinaryTACKY(tacky_op, v1, v2, dst))
             return dst
 
 
@@ -73,6 +117,8 @@ def convert_unop(op):
             return asdl.UnaryOperatorTACKY.COMPLEMENT
         case asdl.UnaryOperatorAST.NEGATE:
             return asdl.UnaryOperatorTACKY.NEGATE
+        case asdl.UnaryOperatorAST.NOT:
+            return asdl.UnaryOperatorTACKY.NOT
 
 
 def convert_binop(op):
@@ -87,3 +133,15 @@ def convert_binop(op):
             return asdl.BinaryOperatorTACKY.DIVIDE
         case asdl.BinaryOperatorAST.REMAINDER:
             return asdl.BinaryOperatorTACKY.REMAINDER
+        case asdl.BinaryOperatorAST.EQUAL:
+            return asdl.BinaryOperatorTACKY.EQUAL
+        case asdl.BinaryOperatorAST.NOT_EQUAL:
+            return asdl.BinaryOperatorTACKY.NOT_EQUAL
+        case asdl.BinaryOperatorAST.LESS_THAN:
+            return asdl.BinaryOperatorTACKY.LESS_THAN
+        case asdl.BinaryOperatorAST.LESS_OR_EQUAL:
+            return asdl.BinaryOperatorTACKY.LESS_OR_EQUAL
+        case asdl.BinaryOperatorAST.GREATER_THAN:
+            return asdl.BinaryOperatorTACKY.GREATER_THAN
+        case asdl.BinaryOperatorAST.GREATER_OR_EQUAL:
+            return asdl.BinaryOperatorTACKY.GREATER_OR_EQUAL

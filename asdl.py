@@ -44,6 +44,12 @@ class BinaryOperatorTACKY(BinaryOperator):
     MULTIPLY = auto()
     DIVIDE = auto()
     REMAINDER = auto()
+    EQUAL = auto()
+    NOT_EQUAL = auto()
+    LESS_THAN = auto()
+    LESS_OR_EQUAL = auto()
+    GREATER_THAN = auto()
+    GREATER_OR_EQUAL = auto()
 
 
 class BinaryOperatorASM(BinaryOperator):
@@ -65,6 +71,7 @@ class UnaryOperatorAST(UnaryOperator):
 class UnaryOperatorTACKY(UnaryOperator):
     COMPLEMENT = auto()
     NEGATE = auto()
+    NOT = auto()
 
 
 class UnaryOperatorASM(UnaryOperator):
@@ -170,6 +177,34 @@ class BinaryTACKY(Instruction):
     src1: Val
     src2: Val
     dst: Val
+
+
+@dataclass
+class CopyTACKY(Instruction):
+    src: Val
+    dst: Val
+
+
+@dataclass
+class JumpTACKY(Instruction):
+    target: str
+
+
+@dataclass
+class JumpIfZeroTACKY(Instruction):
+    condition: Val
+    target: str
+
+
+@dataclass
+class JumpIfNotZeroTACKY(Instruction):
+    condition: Val
+    target: str
+
+
+@dataclass
+class LabelTACKY(Instruction):
+    identifier: str
 
 
 @dataclass

@@ -78,14 +78,14 @@ class TestTacky(TestCommon):
         )
 
     def test_convert_tacky(self):
-        g, instructions = tacky.mk_tmp(), []
+        g, instructions = tacky.G(), []
         tacky.convert_tacky(g, self.figure_3_1_ast, instructions)
         self.assertEqual(
             instructions,
             self.figure_3_1_tacky,
         )
 
-        g = tacky.mk_tmp()
+        g = tacky.G()
         instructions.clear()
         tacky.convert_tacky(g, self.figure_3_2_ast, instructions)
         self.assertEqual(
@@ -93,7 +93,7 @@ class TestTacky(TestCommon):
             self.figure_3_2_tacky,
         )
 
-        g = tacky.mk_tmp()
+        g = tacky.G()
         instructions.clear()
         tacky.convert_tacky(g, self.dealing_with_precedence_ast, instructions)
         self.assertEqual(
@@ -101,12 +101,60 @@ class TestTacky(TestCommon):
             self.dealing_with_precedence_tacky,
         )
 
-        g = tacky.mk_tmp()
+        g = tacky.G()
         instructions.clear()
         tacky.convert_tacky(g, self.precedence_climbing_in_action_ast, instructions)
         self.assertEqual(
             instructions,
             self.precedence_climbing_in_action_tacky,
+        )
+
+        g = tacky.G()
+        instructions.clear()
+        tacky.convert_tacky(
+            g,
+            asdl.BinaryAST(
+                asdl.BinaryOperatorAST.AND,
+                asdl.ConstantAST(0),
+                asdl.ConstantAST(2),
+            ),
+            instructions,
+        )
+        self.assertEqual(
+            instructions,
+            [
+                asdl.JumpIfZeroTACKY(asdl.ConstantTACKY(0), "and_false0"),
+                asdl.JumpIfZeroTACKY(asdl.ConstantTACKY(2), "and_false0"),
+                asdl.CopyTACKY(asdl.ConstantTACKY(1), asdl.VarTACKY("tmp.0")),
+                asdl.JumpTACKY("end0"),
+                asdl.LabelTACKY("and_false0"),
+                asdl.CopyTACKY(asdl.ConstantTACKY(0), asdl.VarTACKY("tmp.0")),
+                asdl.LabelTACKY("end0"),
+            ],
+        )
+
+        g = tacky.G()
+        instructions.clear()
+        tacky.convert_tacky(
+            g,
+            asdl.BinaryAST(
+                asdl.BinaryOperatorAST.OR,
+                asdl.ConstantAST(2),
+                asdl.ConstantAST(0),
+            ),
+            instructions,
+        )
+        self.assertEqual(
+            instructions,
+            [
+                asdl.JumpIfNotZeroTACKY(asdl.ConstantTACKY(2), "or_true0"),
+                asdl.JumpIfNotZeroTACKY(asdl.ConstantTACKY(0), "or_true0"),
+                asdl.CopyTACKY(asdl.ConstantTACKY(0), asdl.VarTACKY("tmp.0")),
+                asdl.JumpTACKY("end0"),
+                asdl.LabelTACKY("or_true0"),
+                asdl.CopyTACKY(asdl.ConstantTACKY(1), asdl.VarTACKY("tmp.0")),
+                asdl.LabelTACKY("end0"),
+            ],
         )
 
 
