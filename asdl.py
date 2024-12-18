@@ -86,6 +86,15 @@ class Reg(Enum):
     R11 = auto()
 
 
+class CondCode(Enum):
+    E = auto()
+    NE = auto()
+    G = auto()
+    GE = auto()
+    L = auto()
+    LE = auto()
+
+
 class Operand(ABC):
     pass
 
@@ -227,6 +236,12 @@ class BinaryASM(Instruction):
 
 
 @dataclass
+class CmpASM(Instruction):
+    lhs: Operand
+    rhs: Operand
+
+
+@dataclass
 class IdivASM(Instruction):
     operand: Operand
 
@@ -234,6 +249,28 @@ class IdivASM(Instruction):
 class CdqASM(Instruction):
     def __eq__(self, o):
         return isinstance(o, CdqASM)
+
+
+@dataclass
+class JmpASM(Instruction):
+    identifier: str
+
+
+@dataclass
+class JmpCCASM(Instruction):
+    cond_code: CondCode
+    identifier: str
+
+
+@dataclass
+class SetCCASM(Instruction):
+    cond_code: CondCode
+    operand: Operand
+
+
+@dataclass
+class LabelASM(Instruction):
+    identifier: str
 
 
 @dataclass

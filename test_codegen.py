@@ -96,6 +96,49 @@ class TestCodegen(TestCommon):
             self.precedence_climbing_in_action_asm,
         )
 
+        self.assertEqual(
+            codegen.convert(
+                asdl.ProgramTACKY(
+                    asdl.FunctionTACKY(
+                        "main",
+                        [
+                            asdl.UnaryTACKY(
+                                asdl.UnaryOperatorTACKY.NEGATE,
+                                asdl.ConstantTACKY(1),
+                                asdl.VarTACKY("tmp.0"),
+                            ),
+                            asdl.JumpTACKY("there"),
+                            asdl.UnaryTACKY(
+                                asdl.UnaryOperatorTACKY.NEGATE,
+                                asdl.ConstantTACKY(2),
+                                asdl.VarTACKY("tmp.0"),
+                            ),
+                            asdl.LabelTACKY("there"),
+                            asdl.ReturnTACKY(asdl.VarTACKY("tmp.0")),
+                        ],  # Listing 4-5
+                    )
+                )
+            ),
+            asdl.ProgramASM(
+                asdl.FunctionASM(
+                    "main",
+                    [
+                        asdl.AllocateStackASM(4),
+                        asdl.MovASM(asdl.ImmASM(1), asdl.RegASM(asdl.Reg.R10)),
+                        asdl.MovASM(asdl.RegASM(asdl.Reg.R10), asdl.StackASM(-4)),
+                        asdl.UnaryASM(asdl.UnaryOperatorASM.NEG, asdl.StackASM(-4)),
+                        asdl.JmpASM("there"),
+                        asdl.MovASM(asdl.ImmASM(2), asdl.RegASM(asdl.Reg.R10)),
+                        asdl.MovASM(asdl.RegASM(asdl.Reg.R10), asdl.StackASM(-4)),
+                        asdl.UnaryASM(asdl.UnaryOperatorASM.NEG, asdl.StackASM(-4)),
+                        asdl.LabelASM("there"),
+                        asdl.MovASM(asdl.StackASM(-4), asdl.RegASM(asdl.Reg.AX)),
+                        asdl.RetASM(),
+                    ],
+                )
+            ),
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
