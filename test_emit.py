@@ -31,8 +31,10 @@ class TestEmit(TestCommon):
                 epilogue += emit.NO_EXEC_STACK
             return prologue + interlude + epilogue
 
-        s = "\tsubq $0, %rsp\n"
-        s += "\tmovl $2, %eax\n"
+        s = """\
+\tsubq $0, %rsp
+\tmovl $2, %eax
+"""
         self.assertEqual(emit.output(self.listing_1_1_asm), fill(s))
 
         s = "\tsubq $8, %rsp\n"

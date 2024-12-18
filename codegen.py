@@ -18,8 +18,9 @@ import asdl
 
 def convert(tree):
     tree = convert_program(tree)
-    stack_offset = replace_pseudoregisters(tree)
-    fix_instructions(tree, stack_offset)
+    instructions = tree.function_definition.instructions
+    stack_offset = replace_pseudoregisters(instructions)
+    fix_instructions(instructions, stack_offset)
     return tree
 
 
@@ -149,7 +150,7 @@ def convert_relational_operator(node):
             return asdl.CondCode.GE
 
 
-def replace_pseudoregisters(tree):
+def replace_pseudoregisters(instructions):
     def replace(identifier, stack_offset, identifiers_offsets):
         if identifier not in identifiers_offsets:
             stack_offset -= 4
@@ -157,7 +158,6 @@ def replace_pseudoregisters(tree):
         return asdl.StackASM(identifiers_offsets[identifier]), stack_offset
 
     identifiers_offsets, stack_offset = {}, 0
-    instructions = tree.function_definition.instructions
     for index, instruction in enumerate(instructions[:]):
         match instruction:
             case asdl.MovASM(asdl.PseudoASM(x), asdl.PseudoASM(y)):
@@ -208,11 +208,8 @@ def replace_pseudoregisters(tree):
     return abs(stack_offset)
 
 
-def fix_instructions(tree, stack_offset):
-    index, instructions = (
-        0,
-        tree.function_definition.instructions,
-    )
+def fix_instructions(instructions, stack_offset):
+    index = 0
     instructions.insert(index, asdl.AllocateStackASM(stack_offset))
     index += 1
     while index < len(instructions):

@@ -55,8 +55,8 @@ def convert_function_definition(node):
 
 
 def convert_statement(node):
-    g, instructions = G(), []
-    v = convert_tacky(g, node.exp, instructions)
+    instructions = []
+    v = convert_tacky(G(), node.exp, instructions)
     instructions.append(asdl.ReturnTACKY(v))
     return instructions
 

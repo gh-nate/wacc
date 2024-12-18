@@ -1,6 +1,8 @@
 Based on https://nostarch.com/writing-c-compiler
 Passes https://github.com/nlsandler/writing-a-c-compiler-tests
 
+Tested on macOS Sequoia 15.2 with Python 3.13
+
 Use
 
   ./driver -h

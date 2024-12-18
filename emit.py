@@ -21,13 +21,6 @@ NO_EXEC_STACK = '.section .note.GNU-stack,"",@progbits'
 SYSTEM = platform.system()
 
 
-def format_label(label):
-    if SYSTEM == "Linux":
-        return f".L{label}"
-    elif SYSTEM == "Darwin":
-        return f"L{label}"
-
-
 def output(tree):
     with io.StringIO() as s:
         output_program(tree, s)
@@ -91,11 +84,15 @@ def output_instructions(instructions, s):
             case asdl.CdqASM():
                 print("\tcdq", file=s)
             case asdl.JmpASM(label):
-                print("\tjmp " + format_label(label), file=s)
+                s.write("\tjmp ")
+                output_label(label, s)
+                s.write("\n")
             case asdl.JmpCCASM(cond_code, label):
                 s.write("\tj")
                 output_cond_code(cond_code, s)
-                print(" " + format_label(label), file=s)
+                s.write(" ")
+                output_label(label, s)
+                s.write("\n")
             case asdl.SetCCASM(cond_code, operand):
                 s.write("\tset")
                 output_cond_code(cond_code, s)
@@ -103,7 +100,8 @@ def output_instructions(instructions, s):
                 output_operand(operand, s, True)
                 s.write("\n")
             case asdl.LabelASM(label):
-                print(format_label(label) + ":", file=s)
+                output_label(label, s)
+                print(":", file=s)
             case asdl.AllocateStackASM(i):
                 print(f"\tsubq ${i}, %rsp", file=s)
             case asdl.RetASM():
@@ -130,3 +128,10 @@ def output_operand(node, s, is_byte=False):
 
 def output_cond_code(cond_code, s):
     s.write(cond_code.value)
+
+
+def output_label(label, s):
+    if SYSTEM == "Linux":
+        s.write(f".L{label}")
+    elif SYSTEM == "Darwin":
+        s.write(f"L{label}")

@@ -99,8 +99,8 @@ def parse_exp(tokens, min_prec=0):
 
 
 def parse_factor(tokens):
-    key, next_token = lexer.TOKEN.CONSTANT, peek(tokens)
-    if lexer.TOKEN_PATTERNS[key].match(next_token):
+    next_token = peek(tokens)
+    if lexer.TOKEN_PATTERNS[lexer.TOKEN.CONSTANT].match(next_token):
         return asdl.ConstantAST(int(take_token(tokens)))
     elif next_token in ["~", "-", "!"]:
         return asdl.UnaryAST(parse_unop(tokens), parse_factor(tokens))

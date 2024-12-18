@@ -78,41 +78,39 @@ class TestTacky(TestCommon):
         )
 
     def test_convert_tacky(self):
-        g, instructions = tacky.G(), []
-        tacky.convert_tacky(g, self.figure_3_1_ast, instructions)
+        instructions = []
+        tacky.convert_tacky(tacky.G(), self.figure_3_1_ast, instructions)
         self.assertEqual(
             instructions,
             self.figure_3_1_tacky,
         )
 
-        g = tacky.G()
         instructions.clear()
-        tacky.convert_tacky(g, self.figure_3_2_ast, instructions)
+        tacky.convert_tacky(tacky.G(), self.figure_3_2_ast, instructions)
         self.assertEqual(
             instructions,
             self.figure_3_2_tacky,
         )
 
-        g = tacky.G()
         instructions.clear()
-        tacky.convert_tacky(g, self.dealing_with_precedence_ast, instructions)
+        tacky.convert_tacky(tacky.G(), self.dealing_with_precedence_ast, instructions)
         self.assertEqual(
             instructions,
             self.dealing_with_precedence_tacky,
         )
 
-        g = tacky.G()
         instructions.clear()
-        tacky.convert_tacky(g, self.precedence_climbing_in_action_ast, instructions)
+        tacky.convert_tacky(
+            tacky.G(), self.precedence_climbing_in_action_ast, instructions
+        )
         self.assertEqual(
             instructions,
             self.precedence_climbing_in_action_tacky,
         )
 
-        g = tacky.G()
         instructions.clear()
         tacky.convert_tacky(
-            g,
+            tacky.G(),
             asdl.BinaryAST(
                 asdl.BinaryOperatorAST.AND,
                 asdl.ConstantAST(0),
@@ -133,10 +131,9 @@ class TestTacky(TestCommon):
             ],
         )
 
-        g = tacky.G()
         instructions.clear()
         tacky.convert_tacky(
-            g,
+            tacky.G(),
             asdl.BinaryAST(
                 asdl.BinaryOperatorAST.OR,
                 asdl.ConstantAST(2),
