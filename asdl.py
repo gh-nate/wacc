@@ -87,12 +87,12 @@ class Reg(Enum):
 
 
 class CondCode(Enum):
-    E = auto()
-    NE = auto()
-    G = auto()
-    GE = auto()
-    L = auto()
-    LE = auto()
+    E = "e"
+    NE = "ne"
+    G = "g"
+    GE = "ge"
+    L = "l"
+    LE = "le"
 
 
 class Operand(ABC):

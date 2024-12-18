@@ -21,6 +21,13 @@ NO_EXEC_STACK = '.section .note.GNU-stack,"",@progbits'
 SYSTEM = platform.system()
 
 
+def format_label(label):
+    if SYSTEM == "Linux":
+        return f".L{label}"
+    elif SYSTEM == "Darwin":
+        return f"L{label}"
+
+
 def output(tree):
     with io.StringIO() as s:
         output_program(tree, s)
@@ -51,10 +58,6 @@ def output_instructions(instructions, s):
                 s.write(", ")
                 output_operand(dst, s)
                 s.write("\n")
-            case asdl.RetASM():
-                print("\tmovq %rbp, %rsp", file=s)
-                print("\tpopq %rbp", file=s)
-                print("\tret", file=s)
             case asdl.UnaryASM(unary_operator, operand):
                 match unary_operator:
                     case asdl.UnaryOperatorASM.NEG:
@@ -75,27 +78,55 @@ def output_instructions(instructions, s):
                 s.write(", ")
                 output_operand(dst, s)
                 s.write("\n")
+            case asdl.CmpASM(lhs, rhs):
+                s.write("\tcmpl ")
+                output_operand(lhs, s)
+                s.write(", ")
+                output_operand(rhs, s)
+                s.write("\n")
             case asdl.IdivASM(operand):
                 s.write("\tidivl ")
                 output_operand(operand, s)
                 s.write("\n")
             case asdl.CdqASM():
                 print("\tcdq", file=s)
+            case asdl.JmpASM(label):
+                print("\tjmp " + format_label(label), file=s)
+            case asdl.JmpCCASM(cond_code, label):
+                s.write("\tj")
+                output_cond_code(cond_code, s)
+                print(" " + format_label(label), file=s)
+            case asdl.SetCCASM(cond_code, operand):
+                s.write("\tset")
+                output_cond_code(cond_code, s)
+                s.write(" ")
+                output_operand(operand, s, True)
+                s.write("\n")
+            case asdl.LabelASM(label):
+                print(format_label(label) + ":", file=s)
             case asdl.AllocateStackASM(i):
                 print(f"\tsubq ${i}, %rsp", file=s)
+            case asdl.RetASM():
+                print("\tmovq %rbp, %rsp", file=s)
+                print("\tpopq %rbp", file=s)
+                print("\tret", file=s)
 
 
-def output_operand(node, s):
+def output_operand(node, s, is_byte=False):
     match node:
         case asdl.RegASM(asdl.Reg.AX):
-            s.write("%eax")
+            s.write("%al" if is_byte else "%eax")
         case asdl.RegASM(asdl.Reg.DX):
-            s.write("%edx")
+            s.write("%dl" if is_byte else "%edx")
         case asdl.RegASM(asdl.Reg.R10):
-            s.write("%r10d")
+            s.write("%r10b" if is_byte else "%r10d")
         case asdl.RegASM(asdl.Reg.R11):
-            s.write("%r11d")
+            s.write("%r11b" if is_byte else "%r11d")
         case asdl.StackASM(i):
             s.write(f"{i}(%rbp)")
         case asdl.ImmASM(int):
             s.write(f"${int}")
+
+
+def output_cond_code(cond_code, s):
+    s.write(cond_code.value)

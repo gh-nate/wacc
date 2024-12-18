@@ -140,6 +140,24 @@ class TestEmit(TestCommon):
         s += "\tmovl -16(%rbp), %eax\n"
         self.assertEqual(emit.output(self.precedence_climbing_in_action_asm), fill(s))
 
+        s = "\tsubq $4, %rsp\n"
+        s += "\tmovl $1, %r10d\n"
+        s += "\tmovl %r10d, -4(%rbp)\n"
+        s += "\tnegl -4(%rbp)\n"
+        if emit.SYSTEM == "Linux":
+            s += "\tjmp .Lthere\n"
+        elif emit.SYSTEM == "Darwin":
+            s += "\tjmp Lthere\n"
+        s += "\tmovl $2, %r10d\n"
+        s += "\tmovl %r10d, -4(%rbp)\n"
+        s += "\tnegl -4(%rbp)\n"
+        if emit.SYSTEM == "Linux":
+            s += ".Lthere:\n"
+        elif emit.SYSTEM == "Darwin":
+            s += "Lthere:\n"
+        s += "\tmovl -4(%rbp), %eax\n"
+        self.assertEqual(emit.output(self.listing_4_5_asm), fill(s))
+
 
 if __name__ == "__main__":
     unittest.main()

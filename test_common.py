@@ -521,3 +521,22 @@ class TestCommon(unittest.TestCase):
                 ],
             ),
         )
+
+        self.listing_4_5_asm = asdl.ProgramASM(
+            asdl.FunctionASM(
+                "main",
+                [
+                    asdl.AllocateStackASM(4),
+                    asdl.MovASM(asdl.ImmASM(1), asdl.RegASM(asdl.Reg.R10)),
+                    asdl.MovASM(asdl.RegASM(asdl.Reg.R10), asdl.StackASM(-4)),
+                    asdl.UnaryASM(asdl.UnaryOperatorASM.NEG, asdl.StackASM(-4)),
+                    asdl.JmpASM("there"),
+                    asdl.MovASM(asdl.ImmASM(2), asdl.RegASM(asdl.Reg.R10)),
+                    asdl.MovASM(asdl.RegASM(asdl.Reg.R10), asdl.StackASM(-4)),
+                    asdl.UnaryASM(asdl.UnaryOperatorASM.NEG, asdl.StackASM(-4)),
+                    asdl.LabelASM("there"),
+                    asdl.MovASM(asdl.StackASM(-4), asdl.RegASM(asdl.Reg.AX)),
+                    asdl.RetASM(),
+                ],
+            )
+        )
