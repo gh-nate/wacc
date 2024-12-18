@@ -1,3 +1,11 @@
 Based on https://nostarch.com/writing-c-compiler
 
 Tested on macOS Sequoia 15.2 with Python 3.13
+
+Use
+
+  ./driver -h
+
+Lint and Format
+
+  ./lf.sh
