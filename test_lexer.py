@@ -1,5 +1,3 @@
-#!/usr/bin/env sh
-
 # Copyright (C) 2024 gh-nate
 #
 # This program is free software: you can redistribute it and/or modify
@@ -15,7 +13,21 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-set -e
+import lexer
+import unittest
 
-ruff check driver
-ruff format driver
+
+class TestLexer(unittest.TestCase):
+    def test_tokenize(self):
+        self.assertEqual(
+            lexer.tokenize("""\
+int main(void) {
+    return 2;
+}
+"""),
+            ["int", "main", "(", "void", ")", "{", "return", "2", ";", "}"],
+        )  # Listing 1-1
+
+
+if __name__ == "__main__":
+    unittest.main()
