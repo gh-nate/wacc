@@ -15,19 +15,18 @@
 
 from test_common import TestCommon
 
-import lexer
+import asdl
+import parser
 import unittest
 
 
-class TestLexer(TestCommon):
-    def test_tokenize(self):
+class TestParser(TestCommon):
+    def test_parse(self):
         self.assertEqual(
-            lexer.tokenize("""\
-int main(void) {
-    return 2;
-}
-"""),
-            self.listing_1_1_tokens,
+            parser.parse(self.listing_1_1_tokens),
+            asdl.ProgramAST(
+                asdl.FunctionAST("main", asdl.ReturnAST(asdl.ConstantAST(2)))
+            ),
         )
 
 

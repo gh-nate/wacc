@@ -13,23 +13,20 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from test_common import TestCommon
-
-import lexer
 import unittest
 
 
-class TestLexer(TestCommon):
-    def test_tokenize(self):
-        self.assertEqual(
-            lexer.tokenize("""\
-int main(void) {
-    return 2;
-}
-"""),
-            self.listing_1_1_tokens,
-        )
-
-
-if __name__ == "__main__":
-    unittest.main()
+class TestCommon(unittest.TestCase):
+    def setUp(self):
+        self.listing_1_1_tokens = [
+            "int",
+            "main",
+            "(",
+            "void",
+            ")",
+            "{",
+            "return",
+            "2",
+            ";",
+            "}",
+        ]
