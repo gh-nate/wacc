@@ -17,5 +17,6 @@
 
 set -e
 
-ruff check driver
-ruff format driver
+ruff check driver .
+ruff format driver .
+python3 -m unittest
