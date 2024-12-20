@@ -14,23 +14,26 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import asdl
-import unittest
 
 
-class TestCommon(unittest.TestCase):
-    def setUp(self):
-        self.listing_1_1_tokens = [
-            "int",
-            "main",
-            "(",
-            "void",
-            ")",
-            "{",
-            "return",
-            "2",
-            ";",
-            "}",
-        ]
-        self.listing_1_1_ast = asdl.ProgramAST(
-            asdl.FunctionAST("main", asdl.ReturnAST(asdl.ConstantAST(2)))
-        )
+def convert(tree):
+    return convert_program(tree)
+
+
+def convert_program(tree):
+    return asdl.ProgramASM(convert_function_definition(tree.function_definition))
+
+
+def convert_function_definition(node):
+    return asdl.FunctionASM(node.name, convert_statement(node.body))
+
+
+def convert_statement(node):
+    return [
+        asdl.MovASM(convert_exp(node.exp), asdl.RegisterASM()),
+        asdl.RetASM(),
+    ]
+
+
+def convert_exp(node):
+    return asdl.ImmASM(node.int)

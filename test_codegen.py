@@ -13,24 +13,25 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+from test_common import TestCommon
+
 import asdl
+import codegen
 import unittest
 
 
-class TestCommon(unittest.TestCase):
-    def setUp(self):
-        self.listing_1_1_tokens = [
-            "int",
-            "main",
-            "(",
-            "void",
-            ")",
-            "{",
-            "return",
-            "2",
-            ";",
-            "}",
-        ]
-        self.listing_1_1_ast = asdl.ProgramAST(
-            asdl.FunctionAST("main", asdl.ReturnAST(asdl.ConstantAST(2)))
+class TestCodegen(TestCommon):
+    def test_convert(self):
+        self.assertEqual(
+            codegen.convert(self.listing_1_1_ast),
+            asdl.ProgramASM(
+                asdl.FunctionASM(
+                    "main",
+                    [asdl.MovASM(asdl.ImmASM(2), asdl.RegisterASM()), asdl.RetASM()],
+                )
+            ),
         )
+
+
+if __name__ == "__main__":
+    unittest.main()
