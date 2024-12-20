@@ -15,16 +15,23 @@
 
 from test_common import TestCommon
 
-import codegen
+import emit
 import unittest
 
 
-class TestCodegen(TestCommon):
-    def test_convert(self):
-        self.assertEqual(
-            codegen.convert(self.listing_1_1_ast),
-            self.listing_1_1_asm,
-        )
+class TestEmit(TestCommon):
+    def test_output(self):
+        name = "main"
+        if emit.IS_MACOS:
+            name = "_" + name
+        asm = f"""\t.globl {name}
+{name}:
+\tmovl $2, %eax
+\tret
+"""
+        if emit.IS_LINUX:
+            asm += emit.NO_EXEC_STACK
+        self.assertEqual(emit.output(self.listing_1_1_asm), asm)
 
 
 if __name__ == "__main__":
