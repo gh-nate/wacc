@@ -132,8 +132,8 @@ class StackASM(Operand):
 
 
 class UnaryOperatorASM(Enum):
-    NEG = auto()
-    NOT = auto()
+    NEG = "negl"
+    NOT = "notl"
 
 
 @dataclass

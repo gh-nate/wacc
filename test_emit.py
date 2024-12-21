@@ -20,19 +20,44 @@ import unittest
 
 
 class TestEmit(TestCommon):
-    @unittest.skip("code emission stage doesn't support new asm asdl")
     def test_output(self):
-        name = "main"
-        if emit.IS_MACOS:
-            name = "_" + name
-        asm = f"""\t.globl {name}
+        def fill(*dialogue):
+            name = "main"
+            if emit.IS_MACOS:
+                name = "_" + name
+            asm = f"""\
+\t.globl {name}
 {name}:
-\tmovl $2, %eax
+\tpushq %rbp
+\tmovq %rsp, %rbp
+"""
+            asm += "\n".join(dialogue)
+            asm += """
+\tmovq %rbp, %rsp
+\tpopq %rbp
 \tret
 """
-        if emit.IS_LINUX:
-            asm += emit.NO_EXEC_STACK
-        self.assertEqual(emit.output(self.listing_1_1_asm), asm)
+            if emit.IS_LINUX:
+                asm += emit.NO_EXEC_STACK
+            return asm
+
+        self.assertEqual(
+            emit.output(self.listing_1_1_asm),
+            fill("\tsubq $0, %rsp", "\tmovl $2, %eax"),
+        )
+
+        self.assertEqual(
+            emit.output(self.listing_2_1_asm),
+            fill(
+                "\tsubq $8, %rsp",
+                "\tmovl $2, -4(%rbp)",
+                "\tnegl -4(%rbp)",
+                "\tmovl -4(%rbp), %r10d",
+                "\tmovl %r10d, -8(%rbp)",
+                "\tnotl -8(%rbp)",
+                "\tmovl -8(%rbp), %eax",
+            ),  # Listing 2-2
+        )
 
 
 if __name__ == "__main__":
