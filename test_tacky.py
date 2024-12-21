@@ -15,36 +15,20 @@
 
 from test_common import TestCommon
 
-import asdl
 import tacky
 import unittest
 
 
 class TestTacky(TestCommon):
     def test_convert(self):
-        def fill(*instructions):
-            return asdl.ProgramTACKY(asdl.FunctionTACKY("main", [*instructions]))
-
         self.assertEqual(
             tacky.convert(self.listing_1_1_ast),
-            fill(asdl.ReturnTACKY(asdl.ConstantTACKY(2))),
+            self.listing_1_1_tacky,
         )
 
         self.assertEqual(
             tacky.convert(self.listing_2_1_ast),
-            fill(
-                asdl.UnaryTACKY(
-                    asdl.UnaryOperatorTACKY.NEGATE,
-                    asdl.ConstantTACKY(2),
-                    asdl.VarTACKY("tmp.0"),
-                ),
-                asdl.UnaryTACKY(
-                    asdl.UnaryOperatorTACKY.COMPLEMENT,
-                    asdl.VarTACKY("tmp.0"),
-                    asdl.VarTACKY("tmp.1"),
-                ),
-                asdl.ReturnTACKY(asdl.VarTACKY("tmp.1")),
-            ),
+            self.listing_2_1_tacky,
         )
 
 
