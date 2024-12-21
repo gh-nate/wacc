@@ -45,21 +45,21 @@ preprocessed_file.unlink()
 if arguments.lex:
     sys.exit()
 
-ast_tree = parser.parse(tokens)
+tree = parser.parse(tokens)
 if arguments.parse:
     sys.exit()
 
-tacky.convert(ast_tree)
+tree = tacky.convert(tree)
 if arguments.tacky:
     sys.exit()
 
-asm_tree = codegen.convert(ast_tree)
+tree = codegen.convert(tree)
 if arguments.codegen:
     sys.exit()
 
 assembly_file = input_file.with_suffix(".s")
 with assembly_file.open("w") as f:
-    f.write(emit.output(asm_tree))
+    f.write(emit.output(tree))
 if arguments.S:
     sys.exit()
 

@@ -15,6 +15,7 @@
 
 from test_common import TestCommon
 
+import asdl
 import codegen
 import unittest
 
@@ -22,8 +23,29 @@ import unittest
 class TestCodegen(TestCommon):
     def test_convert(self):
         self.assertEqual(
-            codegen.convert(self.listing_1_1_ast),
+            codegen.convert(self.listing_1_1_tacky),
             self.listing_1_1_asm,
+        )
+
+        r10 = asdl.RegisterASM(asdl.RegASM.R10)
+        stack_4, stack_8 = asdl.StackASM(-4), asdl.StackASM(-8)
+        self.assertEqual(
+            codegen.convert(self.listing_2_1_tacky),
+            asdl.ProgramASM(
+                asdl.FunctionASM(
+                    "main",
+                    [
+                        asdl.AllocateStackASM(8),
+                        asdl.MovASM(asdl.ImmASM(2), stack_4),
+                        asdl.UnaryASM(asdl.UnaryOperatorASM.NEG, stack_4),
+                        asdl.MovASM(stack_4, r10),
+                        asdl.MovASM(r10, stack_8),
+                        asdl.UnaryASM(asdl.UnaryOperatorASM.NOT, stack_8),
+                        asdl.MovASM(stack_8, asdl.RegisterASM(asdl.RegASM.AX)),
+                        asdl.RetASM(),
+                    ],
+                ),
+            ),
         )
 
 
