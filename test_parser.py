@@ -52,6 +52,31 @@ class TestParser(TestCommon):
             ),
         )
 
+    def test_parse_exp(self):
+        # Precedence Climbing in Action
+        self.assertEqual(
+            parser.parse_exp(
+                ["1", "*", "2", "-", "3", "*", "(", "4", "+", "5", ")", ";"]
+            ),
+            asdl.BinaryAST(
+                asdl.BinaryOperatorAST.SUBTRACT,
+                asdl.BinaryAST(
+                    asdl.BinaryOperatorAST.MULTIPLY,
+                    asdl.ConstantAST(1),
+                    asdl.ConstantAST(2),
+                ),
+                asdl.BinaryAST(
+                    asdl.BinaryOperatorAST.MULTIPLY,
+                    asdl.ConstantAST(3),
+                    asdl.BinaryAST(
+                        asdl.BinaryOperatorAST.ADD,
+                        asdl.ConstantAST(4),
+                        asdl.ConstantAST(5),
+                    ),
+                ),
+            ),
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
