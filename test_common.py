@@ -19,18 +19,14 @@ import unittest
 
 class TestCommon(unittest.TestCase):
     def setUp(self):
-        self.listing_1_1_tokens = [
-            "int",
-            "main",
-            "(",
-            "void",
-            ")",
-            "{",
-            "return",
-            "2",
-            ";",
-            "}",
-        ]
+        def fill(*tokens):
+            return (
+                ["int", "main", "(", "void", ")", "{", "return"]
+                + [*tokens]
+                + [";", "}"]
+            )
+
+        self.listing_1_1_tokens = fill("2")
         self.listing_1_1_ast = asdl.ProgramAST(
             asdl.FunctionAST("main", asdl.ReturnAST(asdl.ConstantAST(2)))
         )
@@ -40,3 +36,9 @@ class TestCommon(unittest.TestCase):
                 [asdl.MovASM(asdl.ImmASM(2), asdl.RegisterASM()), asdl.RetASM()],
             )
         )
+
+        self.listing_2_1_tokens = fill("~", "(", "-", "2", ")")
+
+        self.listing_2_3_tokens = fill("--", "2")
+
+        self.listing_2_4_tokens = fill("-", "(", "-", "2", ")")

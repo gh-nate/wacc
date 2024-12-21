@@ -15,6 +15,7 @@
 
 from test_common import TestCommon
 
+import asdl
 import parser
 import unittest
 
@@ -24,6 +25,41 @@ class TestParser(TestCommon):
         self.assertEqual(
             parser.parse(self.listing_1_1_tokens),
             self.listing_1_1_ast,
+        )
+
+        negate_two = asdl.UnaryAST(asdl.UnaryOperatorAST.NEGATE, asdl.ConstantAST(2))
+
+        self.assertEqual(
+            parser.parse(self.listing_2_1_tokens),
+            asdl.ProgramAST(
+                asdl.FunctionAST(
+                    "main",
+                    asdl.ReturnAST(
+                        asdl.UnaryAST(
+                            asdl.UnaryOperatorAST.COMPLEMENT,
+                            negate_two,
+                        )
+                    ),
+                )
+            ),
+        )
+
+        with self.assertRaises(parser.SyntaxError):
+            parser.parse(self.listing_2_3_tokens)
+
+        self.assertEqual(
+            parser.parse(self.listing_2_4_tokens),
+            asdl.ProgramAST(
+                asdl.FunctionAST(
+                    "main",
+                    asdl.ReturnAST(
+                        asdl.UnaryAST(
+                            asdl.UnaryOperatorAST.NEGATE,
+                            negate_two,
+                        )
+                    ),
+                )
+            ),
         )
 
 

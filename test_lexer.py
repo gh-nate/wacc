@@ -30,21 +30,14 @@ int main(void) {
             self.listing_1_1_tokens,
         )
 
-        def fill(*tokens):
-            return (
-                ["int", "main", "(", "void", ")", "{", "return"]
-                + [*tokens]
-                + [";", "}"]
-            )
-
         self.assertEqual(
             lexer.tokenize("""\
 int main(void) {
     return ~(-2);
 }
 """),
-            fill("~", "(", "-", "2", ")"),
-        )  # Listing 2-1
+            self.listing_2_1_tokens,
+        )
 
         self.assertEqual(
             lexer.tokenize("""\
@@ -52,8 +45,8 @@ int main(void) {
     return --2;
 }
 """),
-            fill("--", "2"),
-        )  # Listing 2-3
+            self.listing_2_3_tokens,
+        )
 
         self.assertEqual(
             lexer.tokenize("""\
@@ -61,8 +54,8 @@ int main(void) {
     return -(-2);
 }
 """),
-            fill("-", "(", "-", "2", ")"),
-        )  # Listing 2-4
+            self.listing_2_4_tokens,
+        )
 
 
 if __name__ == "__main__":
