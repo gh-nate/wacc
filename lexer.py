@@ -28,6 +28,9 @@ class TOKEN(Enum):
     OPEN_BRACE = r"{"
     CLOSE_BRACE = r"}"
     SEMICOLON = r";"
+    BITWISE_COMPLEMENT_OPERATOR = r"~"
+    NEGATION_OPERATOR = r"-"
+    DECREMENT_OPERATOR = r"--"
 
 
 TOKEN_PATTERNS = {t: re.compile(t.value) for t in TOKEN}
