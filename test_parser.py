@@ -27,21 +27,9 @@ class TestParser(TestCommon):
             self.listing_1_1_ast,
         )
 
-        negate_two = asdl.UnaryAST(asdl.UnaryOperatorAST.NEGATE, asdl.ConstantAST(2))
-
         self.assertEqual(
             parser.parse(self.listing_2_1_tokens),
-            asdl.ProgramAST(
-                asdl.FunctionAST(
-                    "main",
-                    asdl.ReturnAST(
-                        asdl.UnaryAST(
-                            asdl.UnaryOperatorAST.COMPLEMENT,
-                            negate_two,
-                        )
-                    ),
-                )
-            ),
+            self.listing_2_1_ast,
         )
 
         with self.assertRaises(parser.SyntaxError):
@@ -55,7 +43,9 @@ class TestParser(TestCommon):
                     asdl.ReturnAST(
                         asdl.UnaryAST(
                             asdl.UnaryOperatorAST.NEGATE,
-                            negate_two,
+                            asdl.UnaryAST(
+                                asdl.UnaryOperatorAST.NEGATE, asdl.ConstantAST(2)
+                            ),
                         )
                     ),
                 )

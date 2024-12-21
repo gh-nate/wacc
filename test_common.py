@@ -19,17 +19,18 @@ import unittest
 
 class TestCommon(unittest.TestCase):
     def setUp(self):
-        def fill(*tokens):
+        def fill_tokens(*tokens):
             return (
                 ["int", "main", "(", "void", ")", "{", "return"]
                 + [*tokens]
                 + [";", "}"]
             )
 
-        self.listing_1_1_tokens = fill("2")
-        self.listing_1_1_ast = asdl.ProgramAST(
-            asdl.FunctionAST("main", asdl.ReturnAST(asdl.ConstantAST(2)))
-        )
+        def fill_ast(exp):
+            return asdl.ProgramAST(asdl.FunctionAST("main", asdl.ReturnAST(exp)))
+
+        self.listing_1_1_tokens = fill_tokens("2")
+        self.listing_1_1_ast = fill_ast(asdl.ConstantAST(2))
         self.listing_1_1_asm = asdl.ProgramASM(
             asdl.FunctionASM(
                 "main",
@@ -37,8 +38,14 @@ class TestCommon(unittest.TestCase):
             )
         )
 
-        self.listing_2_1_tokens = fill("~", "(", "-", "2", ")")
+        self.listing_2_1_tokens = fill_tokens("~", "(", "-", "2", ")")
+        self.listing_2_1_ast = fill_ast(
+            asdl.UnaryAST(
+                asdl.UnaryOperatorAST.COMPLEMENT,
+                asdl.UnaryAST(asdl.UnaryOperatorAST.NEGATE, asdl.ConstantAST(2)),
+            )
+        )
 
-        self.listing_2_3_tokens = fill("--", "2")
+        self.listing_2_3_tokens = fill_tokens("--", "2")
 
-        self.listing_2_4_tokens = fill("-", "(", "-", "2", ")")
+        self.listing_2_4_tokens = fill_tokens("-", "(", "-", "2", ")")
