@@ -45,17 +45,52 @@ def convert_instructions(tacky_instructions):
                 dst = convert_val(dst)
                 instructions += [
                     asdl.MovASM(convert_val(src), dst),
-                    asdl.UnaryASM(convert_unary_operator(unop), dst),
+                    asdl.UnaryASM(convert_arithmetic_operator(unop), dst),
                 ]
+            case asdl.BinaryTACKY(binop, src1, src2, dst):
+                src1, src2, dst = (
+                    convert_val(src1),
+                    convert_val(src2),
+                    convert_val(dst),
+                )
+                match binop:
+                    case asdl.BinaryOperatorTACKY.DIVIDE:
+                        ax = asdl.RegisterASM(asdl.RegASM.AX)
+                        instructions += [
+                            asdl.MovASM(src1, ax),
+                            asdl.CdqASM(),
+                            asdl.IdivASM(src2),
+                            asdl.MovASM(ax, dst),
+                        ]
+                    case asdl.BinaryOperatorTACKY.REMAINDER:
+                        instructions += [
+                            asdl.MovASM(src1, asdl.RegisterASM(asdl.RegASM.AX)),
+                            asdl.CdqASM(),
+                            asdl.IdivASM(src2),
+                            asdl.MovASM(asdl.RegisterASM(asdl.RegASM.DX), dst),
+                        ]
+                    case _:
+                        instructions += [
+                            asdl.MovASM(src1, dst),
+                            asdl.BinaryASM(
+                                convert_arithmetic_operator(binop), src2, dst
+                            ),
+                        ]
     return instructions
 
 
-def convert_unary_operator(operator):
+def convert_arithmetic_operator(operator):
     match operator:
         case asdl.UnaryOperatorTACKY.COMPLEMENT:
             return asdl.UnaryOperatorASM.NOT
         case asdl.UnaryOperatorTACKY.NEGATE:
             return asdl.UnaryOperatorASM.NEG
+        case asdl.BinaryOperatorTACKY.ADD:
+            return asdl.BinaryOperatorASM.ADD
+        case asdl.BinaryOperatorTACKY.SUBTRACT:
+            return asdl.BinaryOperatorASM.SUB
+        case asdl.BinaryOperatorTACKY.MULTIPLY:
+            return asdl.BinaryOperatorASM.MULT
 
 
 def convert_val(val):
@@ -82,8 +117,16 @@ def replace_pseudoregisters(instructions):
                     instructions[index].src = replace(src.identifier)
                 if isinstance(dst, asdl.PseudoASM):
                     instructions[index].dst = replace(dst.identifier)
-            case asdl.UnaryASM(_, asdl.PseudoASM(identifier)):
+            case (
+                asdl.UnaryASM(_, asdl.PseudoASM(identifier))
+                | asdl.IdivASM(asdl.PseudoASM(identifier))
+            ):
                 instructions[index].operand = replace(identifier)
+            case asdl.BinaryASM(_, o1, o2):
+                if isinstance(o1, asdl.PseudoASM):
+                    instructions[index].o1 = replace(o1.identifier)
+                if isinstance(o2, asdl.PseudoASM):
+                    instructions[index].o2 = replace(o2.identifier)
 
     return abs(stack_offset)
 
@@ -93,11 +136,36 @@ def fix_instructions(instructions, stack_offset):
     instructions.insert(index, asdl.AllocateStackASM(stack_offset))
     index += 1
     r10 = asdl.RegisterASM(asdl.RegASM.R10)
+    r11 = asdl.RegisterASM(asdl.RegASM.R11)
     while index < len(instructions):
         offset = 1
         match instructions[index]:
             case asdl.MovASM(asdl.StackASM(_), asdl.StackASM(y)):
                 instructions[index].dst = r10
                 instructions.insert(index + offset, asdl.MovASM(r10, asdl.StackASM(y)))
+                offset += 1
+            case asdl.BinaryASM(binop, o, asdl.StackASM(i)):
+                match binop:
+                    case (
+                        asdl.BinaryOperatorASM.ADD
+                        | asdl.BinaryOperatorASM.SUB
+                    ) if isinstance(o, asdl.StackASM):
+                        instructions[index] = asdl.MovASM(o, r10)
+                        instructions.insert(
+                            index + offset, asdl.BinaryASM(binop, r10, asdl.StackASM(i))
+                        )
+                        offset += 1
+                    case asdl.BinaryOperatorASM.MULT:
+                        dst = asdl.StackASM(i)
+                        instructions[index] = asdl.MovASM(dst, r11)
+                        instructions.insert(
+                            index + offset, asdl.BinaryASM(binop, o, r11)
+                        )
+                        offset += 1
+                        instructions.insert(index + offset, asdl.MovASM(r11, dst))
+                        offset += 1
+            case asdl.IdivASM(asdl.ImmASM(int)):
+                instructions[index] = asdl.MovASM(asdl.ImmASM(int), r10)
+                instructions.insert(index + offset, asdl.IdivASM(r10))
                 offset += 1
         index += offset
