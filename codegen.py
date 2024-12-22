@@ -42,11 +42,19 @@ def convert_instructions(tacky_instructions):
                     asdl.RetASM(),
                 ]
             case asdl.UnaryTACKY(unop, src, dst):
-                dst = convert_val(dst)
-                instructions += [
-                    asdl.MovASM(convert_val(src), dst),
-                    asdl.UnaryASM(convert_arithmetic_operator(unop), dst),
-                ]
+                src, dst = convert_val(src), convert_val(dst)
+                if unop == asdl.UnaryOperatorTACKY.NOT:
+                    imm_0 = asdl.ImmASM(0)
+                    instructions += [
+                        asdl.CmpASM(imm_0, src),
+                        asdl.MovASM(imm_0, dst),
+                        asdl.SetCcASM(asdl.CondCodeASM.E, dst),
+                    ]
+                else:
+                    instructions += [
+                        asdl.MovASM(src, dst),
+                        asdl.UnaryASM(convert_arithmetic_operator(unop), dst),
+                    ]
             case asdl.BinaryTACKY(binop, src1, src2, dst):
                 src1, src2, dst = (
                     convert_val(src1),
@@ -69,6 +77,19 @@ def convert_instructions(tacky_instructions):
                             asdl.IdivASM(src2),
                             asdl.MovASM(asdl.RegisterASM(asdl.RegASM.DX), dst),
                         ]
+                    case (
+                        asdl.BinaryOperatorTACKY.EQUAL
+                        | asdl.BinaryOperatorTACKY.NOT_EQUAL
+                        | asdl.BinaryOperatorTACKY.LESS_THAN
+                        | asdl.BinaryOperatorTACKY.LESS_OR_EQUAL
+                        | asdl.BinaryOperatorTACKY.GREATER_THAN
+                        | asdl.BinaryOperatorTACKY.GREATER_OR_EQUAL
+                    ):
+                        instructions += [
+                            asdl.CmpASM(src2, src1),
+                            asdl.MovASM(asdl.ImmASM(0), dst),
+                            asdl.SetCcASM(convert_relational_operator(binop), dst),
+                        ]
                     case _:
                         instructions += [
                             asdl.MovASM(src1, dst),
@@ -76,7 +97,39 @@ def convert_instructions(tacky_instructions):
                                 convert_arithmetic_operator(binop), src2, dst
                             ),
                         ]
+            case asdl.CopyTACKY(src, dst):
+                instructions.append(asdl.MovASM(convert_val(src), convert_val(dst)))
+            case asdl.JumpTACKY(target):
+                instructions.append(asdl.JmpASM(target))
+            case asdl.JumpIfZeroTACKY(condition, target):
+                instructions += [
+                    asdl.CmpASM(asdl.ImmASM(0), convert_val(condition)),
+                    asdl.JmpCcASM(asdl.CondCodeASM.E, target),
+                ]
+            case asdl.JumpIfNotZeroTACKY(condition, target):
+                instructions += [
+                    asdl.CmpASM(asdl.ImmASM(0), convert_val(condition)),
+                    asdl.JmpCcASM(asdl.CondCodeASM.NE, target),
+                ]
+            case asdl.LabelTACKY(identifier):
+                instructions.append(asdl.LabelASM(identifier))
     return instructions
+
+
+def convert_relational_operator(operator):
+    match operator:
+        case asdl.BinaryOperatorTACKY.EQUAL:
+            return asdl.CondCodeASM.E
+        case asdl.BinaryOperatorTACKY.NOT_EQUAL:
+            return asdl.CondCodeASM.NE
+        case asdl.BinaryOperatorTACKY.LESS_THAN:
+            return asdl.CondCodeASM.L
+        case asdl.BinaryOperatorTACKY.LESS_OR_EQUAL:
+            return asdl.CondCodeASM.LE
+        case asdl.BinaryOperatorTACKY.GREATER_THAN:
+            return asdl.CondCodeASM.G
+        case asdl.BinaryOperatorTACKY.GREATER_OR_EQUAL:
+            return asdl.CondCodeASM.GE
 
 
 def convert_arithmetic_operator(operator):
@@ -85,6 +138,8 @@ def convert_arithmetic_operator(operator):
             return asdl.UnaryOperatorASM.NOT
         case asdl.UnaryOperatorTACKY.NEGATE:
             return asdl.UnaryOperatorASM.NEG
+        case asdl.UnaryOperatorTACKY.NOT:
+            return asdl.UnaryOperatorASM.NOT
         case asdl.BinaryOperatorTACKY.ADD:
             return asdl.BinaryOperatorASM.ADD
         case asdl.BinaryOperatorTACKY.SUBTRACT:
@@ -120,9 +175,10 @@ def replace_pseudoregisters(instructions):
             case (
                 asdl.UnaryASM(_, asdl.PseudoASM(identifier))
                 | asdl.IdivASM(asdl.PseudoASM(identifier))
+                | asdl.SetCcASM(_, asdl.PseudoASM(identifier))
             ):
                 instructions[index].operand = replace(identifier)
-            case asdl.BinaryASM(_, o1, o2):
+            case asdl.BinaryASM(_, o1, o2) | asdl.CmpASM(o1, o2):
                 if isinstance(o1, asdl.PseudoASM):
                     instructions[index].o1 = replace(o1.identifier)
                 if isinstance(o2, asdl.PseudoASM):
@@ -163,6 +219,18 @@ def fix_instructions(instructions, stack_offset):
                         )
                         offset += 1
                         instructions.insert(index + offset, asdl.MovASM(r11, dst))
+                        offset += 1
+            case asdl.CmpASM(x, y):
+                match x, y:
+                    case asdl.StackASM(_), asdl.StackASM(v):
+                        instructions[index] = asdl.MovASM(x, r10)
+                        instructions.insert(
+                            index + offset, asdl.CmpASM(r10, asdl.StackASM(v))
+                        )
+                        offset += 1
+                    case v, asdl.ImmASM(i):
+                        instructions[index] = asdl.MovASM(asdl.ImmASM(i), r11)
+                        instructions.insert(index + offset, asdl.CmpASM(v, r11))
                         offset += 1
             case asdl.IdivASM(asdl.ImmASM(int)):
                 instructions[index] = asdl.MovASM(asdl.ImmASM(int), r10)
