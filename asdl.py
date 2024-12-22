@@ -36,11 +36,20 @@ class BinaryOperatorAST(Enum):
     MULTIPLY = auto()
     DIVIDE = auto()
     REMAINDER = auto()
+    AND = auto()
+    OR = auto()
+    EQUAL = auto()
+    NOT_EQUAL = auto()
+    LESS_THAN = auto()
+    LESS_OR_EQUAL = auto()
+    GREATER_THAN = auto()
+    GREATER_OR_EQUAL = auto()
 
 
 class UnaryOperatorAST(Enum):
     COMPLEMENT = auto()
     NEGATE = auto()
+    NOT = auto()
 
 
 @dataclass
