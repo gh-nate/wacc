@@ -27,7 +27,9 @@ class TestCommon(unittest.TestCase):
             )
 
         def fill_ast(exp):
-            return asdl.ProgramAST(asdl.FunctionAST("main", asdl.ReturnAST(exp)))
+            return asdl.ProgramAST(
+                asdl.FunctionAST("main", [asdl.SAST(asdl.ReturnAST(exp))])
+            )
 
         def fill_tacky(*instructions):
             return asdl.ProgramTACKY(asdl.FunctionTACKY("main", [*instructions]))

@@ -31,6 +31,7 @@ BINARY_OPERATOR_PRECEDENCE = {
     "!=": 30,
     "&&": 10,
     "||": 5,
+    "=": 1,
 }
 
 
@@ -58,26 +59,57 @@ def parse(tokens):
 
 
 def parse_program(tokens):
-    return asdl.ProgramAST(parse_function(tokens))
+    return asdl.ProgramAST(parse_function_definition(tokens))
 
 
-def parse_function(tokens):
+def parse_function_definition(tokens):
     expect("int", tokens)
     key, name = lexer.TOKEN.IDENTIFIER, take_token(tokens)
     if not lexer.TOKEN_PATTERNS[key].match(name):
         raise SyntaxError(f"'{name}' is not a valid {key}")
     for token in ["(", "void", ")", "{"]:
         expect(token, tokens)
-    body = parse_statement(tokens)
-    expect("}", tokens)
-    return asdl.FunctionAST(name, body)
+    function_body = []
+    while tokens[0] != "}":
+        next_block_item = parse_block_item(tokens)
+        function_body.append(next_block_item)
+    take_token(tokens)
+    return asdl.FunctionAST(name, function_body)
+
+
+def parse_block_item(tokens):
+    if tokens[0] == "int":
+        return asdl.DAST(parse_declaration(tokens))
+    return asdl.SAST(parse_statement(tokens))
+
+
+def parse_declaration(tokens):
+    expect("int", tokens)
+    name = take_token(tokens)
+    if not lexer.TOKEN_PATTERNS[lexer.TOKEN.IDENTIFIER].match(name):
+        raise SyntaxError(f"Not an identifier: {name}")
+    exp = None
+    if tokens[0] == "=":
+        take_token(tokens)
+        exp = parse_exp(tokens)
+    expect(";", tokens)
+    return asdl.DeclarationAST(name, exp)
 
 
 def parse_statement(tokens):
-    expect("return", tokens)
-    exp = parse_exp(tokens)
-    expect(";", tokens)
-    return asdl.ReturnAST(exp)
+    match tokens[0]:
+        case "return":
+            take_token(tokens)
+            exp = parse_exp(tokens)
+            expect(";", tokens)
+            return asdl.ReturnAST(exp)
+        case ";":
+            take_token(tokens)
+            return asdl.NullAST()
+        case _:
+            exp = parse_exp(tokens)
+            expect(";", tokens)
+            return asdl.ExpressionAST(exp)
 
 
 def parse_factor(tokens):
@@ -85,6 +117,16 @@ def parse_factor(tokens):
     if lexer.TOKEN_PATTERNS[lexer.TOKEN.CONSTANT].match(next_token):
         take_token(tokens)
         return asdl.ConstantAST(int(next_token))
+    elif lexer.TOKEN_PATTERNS[lexer.TOKEN.IDENTIFIER].match(next_token):
+        for keyword in [
+            lexer.TOKEN.INT_KEYWORD,
+            lexer.TOKEN.VOID_KEYWORD,
+            lexer.TOKEN.RETURN_KEYWORD,
+        ]:
+            if lexer.TOKEN_PATTERNS[keyword].match(next_token):
+                raise SyntaxError(f"{next_token} is a keyword and not an identifier")
+        take_token(tokens)
+        return asdl.VarAST(next_token)
     elif next_token in ["~", "-", "!"]:
         return asdl.UnaryAST(
             parse_unop(tokens),
@@ -106,9 +148,14 @@ def parse_exp(tokens, min_prec=0):
         next_token in BINARY_OPERATOR_PRECEDENCE
         and BINARY_OPERATOR_PRECEDENCE[next_token] >= min_prec
     ):
-        operator = parse_binop(tokens)
-        right = parse_exp(tokens, BINARY_OPERATOR_PRECEDENCE[next_token] + 1)
-        left = asdl.BinaryAST(operator, left, right)
+        if next_token == "=":
+            take_token(tokens)
+            right = parse_exp(tokens, BINARY_OPERATOR_PRECEDENCE[next_token])
+            left = asdl.AssignmentAST(left, right)
+        else:
+            operator = parse_binop(tokens)
+            right = parse_exp(tokens, BINARY_OPERATOR_PRECEDENCE[next_token] + 1)
+            left = asdl.BinaryAST(operator, left, right)
         next_token = tokens[0]
     return left
 
@@ -153,5 +200,7 @@ def parse_binop(tokens):
             return asdl.BinaryOperatorAST.AND
         case "||":
             return asdl.BinaryOperatorAST.OR
+        case "=":
+            return asdl.BinaryOperatorAST.VAR_ASSIGN
         case _:
             raise SyntaxError(f"Unknown binary operator: {token}")

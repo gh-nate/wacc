@@ -19,6 +19,8 @@ from enum import Enum, auto
 
 
 _bases, _dict = (ABC,), {}
+BlockItem = type("BlockItem", _bases, _dict)
+Declaration = type("Declaration", _bases, _dict)
 Exp = type("Exp", _bases, _dict)
 FunctionDefinition = type("FunctionDefinition", _bases, _dict)
 Instruction = type("Instruction", _bases, _dict)
@@ -44,6 +46,7 @@ class BinaryOperatorAST(Enum):
     LESS_OR_EQUAL = auto()
     GREATER_THAN = auto()
     GREATER_OR_EQUAL = auto()
+    VAR_ASSIGN = auto()
 
 
 class UnaryOperatorAST(Enum):
@@ -55,6 +58,11 @@ class UnaryOperatorAST(Enum):
 @dataclass
 class ConstantAST(Exp):
     int: int
+
+
+@dataclass
+class VarAST(Exp):
+    identifier: str
 
 
 @dataclass
@@ -71,14 +79,46 @@ class BinaryAST(Exp):
 
 
 @dataclass
+class AssignmentAST(Exp):
+    lhs: Exp
+    rhs: Exp
+
+
+@dataclass
 class ReturnAST(Statement):
     exp: Exp
 
 
 @dataclass
+class ExpressionAST(Statement):
+    exp: Exp
+
+
+class NullAST(Statement):
+    def __eq__(self, o):
+        return isinstance(o, NullAST)
+
+
+@dataclass
+class DeclarationAST(Declaration):
+    name: str
+    init: Exp | None
+
+
+@dataclass
+class SAST(BlockItem):
+    statement: Statement
+
+
+@dataclass
+class DAST(BlockItem):
+    declaration: Declaration
+
+
+@dataclass
 class FunctionAST(FunctionDefinition):
     name: str
-    body: Statement
+    body: list[BlockItem]
 
 
 @dataclass

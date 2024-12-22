@@ -51,12 +51,12 @@ def convert_program(tree):
 
 
 def convert_function_definition(node):
-    return asdl.FunctionTACKY(node.name, convert_statement(node.body))
+    return asdl.FunctionTACKY(node.name, convert_statement(node.body[0]))
 
 
 def convert_statement(node):
     instructions = []
-    v = emit_tacky(G(), node.exp, instructions)
+    v = emit_tacky(G(), node.statement.exp, instructions)
     instructions.append(asdl.ReturnTACKY(v))
     return instructions
 
