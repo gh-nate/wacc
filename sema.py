@@ -13,6 +13,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+from dataclasses import dataclass
+
 import asdl
 
 
@@ -31,11 +33,15 @@ class ResolutionError(Exception):
 
 
 def analyze(tree):
-    variable_resolution(tree.function_definition.body.items)
+    variable_resolution(tree.function_definition.body)
 
 
-def variable_resolution(items):
-    variable_map = {}
+def variable_resolution(body):
+    resolve_block(body, {})
+
+
+def resolve_block(block, variable_map):
+    items = block.items
     for block_item in items:
         match block_item:
             case asdl.SAST(statement):
@@ -44,13 +50,23 @@ def variable_resolution(items):
                 resolve_declaration(declaration, variable_map)
 
 
+@dataclass
+class MapEntry:
+    new_name: str
+    from_current_block: bool
+
+
 def resolve_declaration(declaration, variable_map):
     name = declaration.name
     if name in variable_map.keys():
-        raise ResolutionError(f"Duplicate variable declaration for {name}!")
-    g = _mk_tmp(name)
+        v = variable_map[name]
+        if v[0].from_current_block:
+            raise ResolutionError(f"Duplicate variable declaration for {name}!")
+        g = v[1]
+    else:
+        g = _mk_tmp(name)
     declaration.name = make_temporary(g)
-    variable_map[name] = declaration.name, g
+    variable_map[name] = MapEntry(declaration.name, True), g
     resolve_exp(declaration.init, variable_map)
 
 
@@ -62,6 +78,8 @@ def resolve_statement(statement, variable_map):
             resolve_exp(condition, variable_map)
             resolve_statement(then, variable_map)
             resolve_statement(else_, variable_map)
+        case asdl.CompoundAST(block):
+            resolve_block(block, copy_variable_map(variable_map))
 
 
 def resolve_exp(e, variable_map):
@@ -69,7 +87,7 @@ def resolve_exp(e, variable_map):
         case asdl.VarAST(identifier):
             if identifier not in variable_map.keys():
                 raise ResolutionError(f"Undeclared variable: {identifier}!")
-            e.identifier = variable_map[identifier][0]
+            e.identifier = variable_map[identifier][0].new_name
         case asdl.UnaryAST(_, exp):
             resolve_exp(exp, variable_map)
         case asdl.BinaryAST(_, e1, e2):
@@ -84,3 +102,10 @@ def resolve_exp(e, variable_map):
             resolve_exp(condition, variable_map)
             resolve_exp(e1, variable_map)
             resolve_exp(e2, variable_map)
+
+
+def copy_variable_map(variable_map):
+    new_variable_map = {}
+    for k, (map_entry, g) in variable_map.items():
+        new_variable_map[k] = MapEntry(map_entry.new_name, False), g
+    return new_variable_map
