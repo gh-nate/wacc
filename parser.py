@@ -142,6 +142,11 @@ def parse_factor(tokens):
             lexer.TOKEN.RETURN_KEYWORD,
             lexer.TOKEN.IF_KEYWORD,
             lexer.TOKEN.ELSE_KEYWORD,
+            lexer.TOKEN.DO_KEYWORD,
+            lexer.TOKEN.WHILE_KEYWORD,
+            lexer.TOKEN.FOR_KEYWORD,
+            lexer.TOKEN.BREAK_KEYWORD,
+            lexer.TOKEN.CONTINUE_KEYWORD,
         ]:
             if lexer.TOKEN_PATTERNS[keyword].match(next_token):
                 raise SyntaxError(f"{next_token} is a keyword and not an identifier")
