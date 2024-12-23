@@ -31,6 +31,11 @@ class TestCodegen(TestCommon):
             self.listing_2_1_asm,
         )
 
+        self.assertEqual(
+            codegen.convert(self.listing_5_13_tacky),
+            self.listing_5_13_asm,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -15,26 +15,16 @@
 
 from test_common import TestCommon
 
-import tacky
+import copy
+import sema
 import unittest
 
 
-class TestTacky(TestCommon):
-    def test_convert(self):
-        self.assertEqual(
-            tacky.convert(self.listing_1_1_ast),
-            self.listing_1_1_tacky,
-        )
-
-        self.assertEqual(
-            tacky.convert(self.listing_2_1_ast),
-            self.listing_2_1_tacky,
-        )
-
-        self.assertEqual(
-            tacky.convert(self.listing_5_13_sema),
-            self.listing_5_13_tacky,
-        )
+class TestSema(TestCommon):
+    def test_analyze(self):
+        tree = copy.deepcopy(self.listing_5_13_ast)
+        sema.analyze(tree)
+        self.assertEqual(tree, self.listing_5_13_sema)
 
 
 if __name__ == "__main__":

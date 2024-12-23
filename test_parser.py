@@ -57,6 +57,11 @@ class TestParser(TestCommon):
             ),
         )
 
+        self.assertEqual(
+            parser.parse(self.listing_5_13_tokens),
+            self.listing_5_13_ast,
+        )
+
     def test_parse_exp(self):
         # Precedence Climbing in Action
         self.assertEqual(

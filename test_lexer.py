@@ -57,6 +57,18 @@ int main(void) {
             self.listing_2_4_tokens,
         )
 
+        self.assertEqual(
+            lexer.tokenize("""\
+int main(void) {
+    int b;
+    int a = 10 + 1;
+    b = a * 2;
+    return b;
+}
+"""),
+            self.listing_5_13_tokens,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -51,13 +51,35 @@ def convert_program(tree):
 
 
 def convert_function_definition(node):
-    return asdl.FunctionTACKY(node.name, convert_statement(node.body[0]))
-
-
-def convert_statement(node):
+    g = G()
     instructions = []
-    v = emit_tacky(G(), node.statement.exp, instructions)
-    instructions.append(asdl.ReturnTACKY(v))
+    for block_item in node.body:
+        match block_item:
+            case asdl.SAST(statement):
+                instructions.extend(convert_statement(g, statement))
+            case asdl.DAST(declaration):
+                instructions.extend(convert_declaration(g, declaration))
+    instructions.append(asdl.ReturnTACKY(asdl.ConstantTACKY(0)))
+    return asdl.FunctionTACKY(node.name, instructions)
+
+
+def convert_statement(g, node):
+    instructions = []
+    if isinstance(node, asdl.NullAST):
+        return instructions
+    v = emit_tacky(g, node.exp, instructions)
+    if isinstance(node, asdl.ReturnAST):
+        instructions.append(asdl.ReturnTACKY(v))
+    return instructions
+
+
+def convert_declaration(g, node):
+    instructions = []
+    init = node.init
+    if not init:
+        return instructions
+    v = emit_tacky(g, init, instructions)
+    instructions.append(asdl.CopyTACKY(v, asdl.VarTACKY(node.name)))
     return instructions
 
 
@@ -101,6 +123,8 @@ def emit_tacky(g, exp, instructions):
     match exp:
         case asdl.ConstantAST(int):
             return asdl.ConstantTACKY(int)
+        case asdl.VarAST(v):
+            return asdl.VarTACKY(v)
         case asdl.UnaryAST(op, inner):
             src = emit_tacky(g, inner, instructions)
             dst = asdl.VarTACKY(g.make_temp_vars())
@@ -144,4 +168,14 @@ def emit_tacky(g, exp, instructions):
                     instructions.append(
                         asdl.BinaryTACKY(convert_binop(op), v1, v2, dst)
                     )
+            return dst
+        case asdl.AssignmentAST(asdl.VarAST(v), rhs):
+            result = emit_tacky(g, rhs, instructions)
+            lhs = asdl.VarTACKY(v)
+            instructions.append(asdl.CopyTACKY(result, lhs))
+            return lhs
+        case asdl.ExpressionAST(exp):
+            result = emit_tacky(g, exp, instructions)
+            dst = asdl.VarTACKY(g.make_temp_vars())
+            instructions.append(asdl.CopyTACKY(result, dst))
             return dst

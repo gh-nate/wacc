@@ -36,6 +36,10 @@ class TestEmit(TestCommon):
 \tmovq %rbp, %rsp
 \tpopq %rbp
 \tret
+\tmovl $0, %eax
+\tmovq %rbp, %rsp
+\tpopq %rbp
+\tret
 """
             if emit.IS_LINUX:
                 asm += emit.NO_EXEC_STACK
@@ -57,6 +61,25 @@ class TestEmit(TestCommon):
                 "\tnotl -8(%rbp)",
                 "\tmovl -8(%rbp), %eax",
             ),  # Listing 2-2
+        )
+
+        self.assertEqual(
+            emit.output(self.listing_5_13_asm),
+            fill(
+                "\tsubq $16, %rsp",
+                "\tmovl $10, -4(%rbp)",
+                "\taddl $1, -4(%rbp)",
+                "\tmovl -4(%rbp), %r10d",
+                "\tmovl %r10d, -8(%rbp)",
+                "\tmovl -8(%rbp), %r10d",
+                "\tmovl %r10d, -12(%rbp)",
+                "\tmovl -12(%rbp), %r11d",
+                "\timull $2, %r11d",
+                "\tmovl %r11d, -12(%rbp)",
+                "\tmovl -12(%rbp), %r10d",
+                "\tmovl %r10d, -16(%rbp)",
+                "\tmovl -16(%rbp), %eax",
+            ),
         )
 
 
