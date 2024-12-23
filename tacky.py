@@ -59,22 +59,28 @@ def convert_program(tree):
 
 
 def convert_function_definition(node):
-    g = G()
     instructions = []
-    for block_item in node.body.items:
+    convert_block(G(), node.body, instructions)
+    instructions.append(asdl.ReturnTACKY(asdl.ConstantTACKY(0)))
+    return asdl.FunctionTACKY(node.name, instructions)
+
+
+def convert_block(g, block, instructions):
+    for block_item in block.items:
         match block_item:
             case asdl.SAST(statement):
                 instructions.extend(convert_statement(g, statement))
             case asdl.DAST(declaration):
                 instructions.extend(convert_declaration(g, declaration))
-    instructions.append(asdl.ReturnTACKY(asdl.ConstantTACKY(0)))
-    return asdl.FunctionTACKY(node.name, instructions)
 
 
 def convert_statement(g, node):
     instructions = []
     match node:
         case asdl.NullAST():
+            return instructions
+        case asdl.CompoundAST(block):
+            convert_block(g, block, instructions)
             return instructions
         case asdl.IfAST(condition, then, else_):
             if else_:
