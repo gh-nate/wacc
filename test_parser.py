@@ -40,19 +40,21 @@ class TestParser(TestCommon):
             asdl.ProgramAST(
                 asdl.FunctionAST(
                     "main",
-                    [
-                        asdl.SAST(
-                            asdl.ReturnAST(
-                                asdl.UnaryAST(
-                                    asdl.UnaryOperatorAST.NEGATE,
+                    asdl.BlockAST(
+                        [
+                            asdl.SAST(
+                                asdl.ReturnAST(
                                     asdl.UnaryAST(
                                         asdl.UnaryOperatorAST.NEGATE,
-                                        asdl.ConstantAST(2),
-                                    ),
+                                        asdl.UnaryAST(
+                                            asdl.UnaryOperatorAST.NEGATE,
+                                            asdl.ConstantAST(2),
+                                        ),
+                                    )
                                 )
                             )
-                        )
-                    ],
+                        ]
+                    ),
                 )
             ),
         )

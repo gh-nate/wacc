@@ -61,7 +61,7 @@ def convert_program(tree):
 def convert_function_definition(node):
     g = G()
     instructions = []
-    for block_item in node.body:
+    for block_item in node.body.items:
         match block_item:
             case asdl.SAST(statement):
                 instructions.extend(convert_statement(g, statement))

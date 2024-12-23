@@ -31,12 +31,12 @@ class ResolutionError(Exception):
 
 
 def analyze(tree):
-    variable_resolution(tree.function_definition.body)
+    variable_resolution(tree.function_definition.body.items)
 
 
-def variable_resolution(body):
+def variable_resolution(items):
     variable_map = {}
-    for block_item in body:
+    for block_item in items:
         match block_item:
             case asdl.SAST(statement):
                 resolve_statement(statement, variable_map)

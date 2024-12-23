@@ -24,7 +24,9 @@ class TestCommon(unittest.TestCase):
             return ["int", "main", "(", "void", ")", "{"] + [*tokens] + [";", "}"]
 
         def fill_ast(*block_items):
-            return asdl.ProgramAST(asdl.FunctionAST("main", [*block_items]))
+            return asdl.ProgramAST(
+                asdl.FunctionAST("main", asdl.BlockAST([*block_items]))
+            )
 
         def fill_tacky(*instructions):
             return asdl.ProgramTACKY(
@@ -144,14 +146,14 @@ class TestCommon(unittest.TestCase):
             asdl.SAST(asdl.ReturnAST(asdl.VarAST(b))),
         )
         self.listing_5_13_sema = copy.deepcopy(self.listing_5_13_ast)
-        sema_body = self.listing_5_13_sema.function_definition.body
+        sema_items = self.listing_5_13_sema.function_definition.body.items
         a_0, b_0 = a + ".0", b + ".0"
-        sema_body[0].declaration.name = b_0
-        sema_body[1].declaration.name = a_0
-        sema_body_2_assignment = sema_body[2].statement.exp
-        sema_body_2_assignment.lhs.identifier = b_0
-        sema_body_2_assignment.rhs.lhs.identifier = a_0
-        sema_body[3].statement.exp.identifier = b_0
+        sema_items[0].declaration.name = b_0
+        sema_items[1].declaration.name = a_0
+        sema_items_2_assignment = sema_items[2].statement.exp
+        sema_items_2_assignment.lhs.identifier = b_0
+        sema_items_2_assignment.rhs.lhs.identifier = a_0
+        sema_items[3].statement.exp.identifier = b_0
         var_tacky_a_0 = asdl.VarTACKY(a_0)
         var_tacky_b_0 = asdl.VarTACKY(b_0)
         self.listing_5_13_tacky = fill_tacky(

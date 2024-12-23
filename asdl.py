@@ -19,6 +19,7 @@ from enum import Enum, auto
 
 
 _bases, _dict = (ABC,), {}
+Block = type("Block", _bases, _dict)
 BlockItem = type("BlockItem", _bases, _dict)
 Declaration = type("Declaration", _bases, _dict)
 Exp = type("Exp", _bases, _dict)
@@ -108,6 +109,11 @@ class IfAST(Statement):
     else_: Statement | None
 
 
+@dataclass
+class CompoundAST(Statement):
+    block: Block
+
+
 class NullAST(Statement):
     def __eq__(self, o):
         return isinstance(o, NullAST)
@@ -117,6 +123,11 @@ class NullAST(Statement):
 class DeclarationAST(Declaration):
     name: str
     init: Exp | None
+
+
+@dataclass
+class BlockAST(Block):
+    items: list[BlockItem]
 
 
 @dataclass
@@ -132,7 +143,7 @@ class DAST(BlockItem):
 @dataclass
 class FunctionAST(FunctionDefinition):
     name: str
-    body: list[BlockItem]
+    body: Block
 
 
 @dataclass
