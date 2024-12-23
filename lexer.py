@@ -45,6 +45,10 @@ class TOKEN(Enum):
     LESS_THAN_OR_EQUAL_TO_OPERATOR = r"<="
     GREATER_THAN_OR_EQUAL_TO_OPERATOR = r">="
     ASSIGNMENT_OPERATOR = r"="
+    IF_KEYWORD = r"if\b"
+    ELSE_KEYWORD = r"else\b"
+    QUESTION_MARK_DELIMITER = r"\?"
+    COLON_DELIMITER = r":"
 
 
 TOKEN_PATTERNS = {t: re.compile(t.value) for t in TOKEN}
