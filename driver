@@ -35,6 +35,7 @@ argument_parser.add_argument("--validate", action=common_action)
 argument_parser.add_argument("--tacky", action=common_action)
 argument_parser.add_argument("--codegen", action=common_action)
 argument_parser.add_argument("-S", action=common_action)
+argument_parser.add_argument("-c", action=common_action)
 arguments = argument_parser.parse_args()
 
 input_file = Path(arguments.input_file)
@@ -69,5 +70,15 @@ with assembly_file.open("w") as f:
 if arguments.S:
     sys.exit()
 
-subprocess.run(["gcc", str(assembly_file), "-o", str(input_file.with_suffix(""))])
+if arguments.c:
+    commands = [
+        "gcc",
+        "-c",
+        str(assembly_file),
+        "-o",
+        str(input_file.with_suffix(".o")),
+    ]
+else:
+    commands = ["gcc", str(assembly_file), "-o", str(input_file.with_suffix(""))]
+subprocess.run(commands)
 assembly_file.unlink()
