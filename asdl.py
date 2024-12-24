@@ -23,6 +23,7 @@ Block = type("Block", _bases, _dict)
 BlockItem = type("BlockItem", _bases, _dict)
 Declaration = type("Declaration", _bases, _dict)
 Exp = type("Exp", _bases, _dict)
+ForInit = type("ForInit", _bases, _dict)
 FunctionDefinition = type("FunctionDefinition", _bases, _dict)
 Instruction = type("Instruction", _bases, _dict)
 Operand = type("Operand", _bases, _dict)
@@ -110,6 +111,39 @@ class IfAST(Statement):
 
 
 @dataclass
+class BreakAST(Statement):
+    label: str
+
+
+@dataclass
+class ContinueAST(Statement):
+    label: str
+
+
+@dataclass
+class WhileAST(Statement):
+    condition: Exp
+    body: Statement
+    label: str
+
+
+@dataclass
+class DoWhileAST(Statement):
+    body: Statement
+    condition: Exp
+    label: str
+
+
+@dataclass
+class ForAST(Statement):
+    init: ForInit
+    condition: Exp | None
+    post: Exp | None
+    body: Statement
+    label: str
+
+
+@dataclass
 class CompoundAST(Statement):
     block: Block
 
@@ -117,6 +151,16 @@ class CompoundAST(Statement):
 class NullAST(Statement):
     def __eq__(self, o):
         return isinstance(o, NullAST)
+
+
+@dataclass
+class InitDeclAST(ForInit):
+    decl: Declaration
+
+
+@dataclass
+class InitExpAST(ForInit):
+    exp: Exp | None
 
 
 @dataclass
