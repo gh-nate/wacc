@@ -17,8 +17,15 @@ from abc import ABC
 from dataclasses import dataclass
 
 
-class Exp(ABC):
-    pass
+_bases, _dict = (ABC,), {}
+Exp = type("Exp", _bases, _dict)
+FunctionDefinition = type("FunctionDefinition", _bases, _dict)
+Instruction = type("Instruction", _bases, _dict)
+Operand = type("Operand", _bases, _dict)
+Program = type("Program", _bases, _dict)
+Statement = type("Statement", _bases, _dict)
+
+# -------------------------------------------------------------------------------
 
 
 @dataclass
@@ -26,17 +33,9 @@ class ConstantAST(Exp):
     int: int
 
 
-class Statement(ABC):
-    pass
-
-
 @dataclass
 class ReturnAST(Statement):
     exp: Exp
-
-
-class FunctionDefinition(ABC):
-    pass
 
 
 @dataclass
@@ -45,10 +44,41 @@ class FunctionAST(FunctionDefinition):
     body: Statement
 
 
-class Program(ABC):
-    pass
+@dataclass
+class ProgramAST(Program):
+    function_definition: FunctionDefinition
+
+
+# -------------------------------------------------------------------------------
 
 
 @dataclass
-class ProgramAST(Program):
+class ImmASM(Operand):
+    int: int
+
+
+class RegisterASM(Operand):
+    def __eq__(self, o):
+        return isinstance(o, RegisterASM)
+
+
+@dataclass
+class MovASM(Instruction):
+    src: Operand
+    dst: Operand
+
+
+class RetASM(Instruction):
+    def __eq__(self, o):
+        return isinstance(o, RetASM)
+
+
+@dataclass
+class FunctionASM(FunctionDefinition):
+    name: str
+    instructions: list[Instruction]
+
+
+@dataclass
+class ProgramASM(Program):
     function_definition: FunctionDefinition
