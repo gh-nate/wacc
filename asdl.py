@@ -106,20 +106,51 @@ class ProgramTACKY(Program):
 # -------------------------------------------------------------------------------
 
 
+class RegASM(Enum):
+    AX = auto()
+    R10 = auto()
+
+
 @dataclass
 class ImmASM(Operand):
     int: int
 
 
+@dataclass
 class RegisterASM(Operand):
-    def __eq__(self, o):
-        return isinstance(o, RegisterASM)
+    reg: RegASM
 
 
 @dataclass
 class MovASM(Instruction):
     src: Operand
     dst: Operand
+
+
+@dataclass
+class PseudoASM(Operand):
+    identifier: str
+
+
+@dataclass
+class StackASM(Operand):
+    int: int
+
+
+class UnaryOperatorASM(Enum):
+    NEG = auto()
+    NOT = auto()
+
+
+@dataclass
+class UnaryASM(Instruction):
+    op: UnaryOperatorASM
+    operand: Operand
+
+
+@dataclass
+class AllocateStackASM(Instruction):
+    int: int
 
 
 class RetASM(Instruction):
