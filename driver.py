@@ -68,7 +68,7 @@ tree = parser.parse(tokens)
 if arguments.parse:
     sys.exit()
 
-tacky.convert(tree)
+tree = tacky.convert(tree)
 if arguments.tacky:
     sys.exit()
 
