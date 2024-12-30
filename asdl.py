@@ -15,6 +15,7 @@
 
 from abc import ABC
 from dataclasses import dataclass
+from enum import Enum, auto
 
 
 _bases, _dict = (ABC,), {}
@@ -28,9 +29,20 @@ Statement = type("Statement", _bases, _dict)
 # -------------------------------------------------------------------------------
 
 
+class UnaryOperatorAST(Enum):
+    COMPLEMENT = auto()
+    NEGATE = auto()
+
+
 @dataclass
 class ConstantAST(Exp):
     int: int
+
+
+@dataclass
+class UnaryAST(Exp):
+    op: UnaryOperatorAST
+    exp: Exp
 
 
 @dataclass

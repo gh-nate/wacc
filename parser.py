@@ -64,7 +64,28 @@ def parse_statement(tokens):
 
 
 def parse_exp(tokens):
-    key, token = lexer.Token.CONSTANT, take_token(tokens)
-    if not lexer.TOKEN_PATTERNS[key].match(token):
-        raise SyntaxError(f"'{token}' is not a valid {key}")
-    return asdl.ConstantAST(int(token))
+    next_token = tokens[0]
+    if lexer.TOKEN_PATTERNS[lexer.Token.CONSTANT].match(next_token):
+        take_token(tokens)
+        return asdl.ConstantAST(int(next_token))
+    elif next_token in ["~", "-"]:
+        return asdl.UnaryAST(
+            parse_unop(tokens),
+            parse_exp(tokens),
+        )
+    elif next_token == "(":
+        take_token(tokens)
+        inner_exp = parse_exp(tokens)
+        expect(")", tokens)
+        return inner_exp
+    raise SyntaxError(f"Malformed expression: {next_token}")
+
+
+def parse_unop(tokens):
+    match token := take_token(tokens):
+        case "-":
+            return asdl.UnaryOperatorAST.NEGATE
+        case "~":
+            return asdl.UnaryOperatorAST.COMPLEMENT
+        case _:
+            raise SyntaxError(f"Unknown unary operator: {token}")
