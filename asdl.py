@@ -171,9 +171,9 @@ class StackASM(Operand):
 
 
 class BinaryOperatorASM(Enum):
-    ADD = auto()
-    SUB = auto()
-    MULT = auto()
+    ADD = "addl"
+    SUB = "subl"
+    MULT = "imull"
 
 
 class UnaryOperatorASM(Enum):
