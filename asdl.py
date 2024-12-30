@@ -25,6 +25,7 @@ Instruction = type("Instruction", _bases, _dict)
 Operand = type("Operand", _bases, _dict)
 Program = type("Program", _bases, _dict)
 Statement = type("Statement", _bases, _dict)
+Val = type("Val", _bases, _dict)
 
 # -------------------------------------------------------------------------------
 
@@ -58,6 +59,47 @@ class FunctionAST(FunctionDefinition):
 
 @dataclass
 class ProgramAST(Program):
+    function_definition: FunctionDefinition
+
+
+# -------------------------------------------------------------------------------
+
+
+class UnaryOperatorTACKY(Enum):
+    COMPLEMENT = auto()
+    NEGATE = auto()
+
+
+@dataclass
+class ConstantTACKY(Val):
+    int: int
+
+
+@dataclass
+class VarTACKY(Val):
+    identifier: str
+
+
+@dataclass
+class ReturnTACKY(Instruction):
+    val: Val
+
+
+@dataclass
+class UnaryTACKY(Instruction):
+    op: UnaryOperatorTACKY
+    src: Val
+    dst: Val
+
+
+@dataclass
+class FunctionTACKY(FunctionDefinition):
+    identifier: str
+    body: list[Instruction]
+
+
+@dataclass
+class ProgramTACKY(Program):
     function_definition: FunctionDefinition
 
 
