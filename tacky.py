@@ -53,6 +53,20 @@ def convert_unop(unop):
             return asdl.UnaryOperatorTACKY.NEGATE
 
 
+def convert_binop(binop):
+    match binop:
+        case asdl.BinaryOperatorAST.ADD:
+            return asdl.BinaryOperatorTACKY.ADD
+        case asdl.BinaryOperatorAST.SUBTRACT:
+            return asdl.BinaryOperatorTACKY.SUBTRACT
+        case asdl.BinaryOperatorAST.MULTIPLY:
+            return asdl.BinaryOperatorTACKY.MULTIPLY
+        case asdl.BinaryOperatorAST.DIVIDE:
+            return asdl.BinaryOperatorTACKY.DIVIDE
+        case asdl.BinaryOperatorAST.REMAINDER:
+            return asdl.BinaryOperatorTACKY.REMAINDER
+
+
 def emit_tacky(g, exp, instructions):
     match exp:
         case asdl.ConstantAST(int):
@@ -61,4 +75,10 @@ def emit_tacky(g, exp, instructions):
             src = emit_tacky(g, inner, instructions)
             dst = asdl.VarTACKY(make_temporary(g))
             instructions.append(asdl.UnaryTACKY(convert_unop(op), src, dst))
+            return dst
+        case asdl.BinaryAST(op, e1, e2):
+            v1 = emit_tacky(g, e1, instructions)
+            v2 = emit_tacky(g, e2, instructions)
+            dst = asdl.VarTACKY(make_temporary(g))
+            instructions.append(asdl.BinaryTACKY(convert_binop(op), v1, v2, dst))
             return dst

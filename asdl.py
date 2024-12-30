@@ -80,6 +80,14 @@ class ProgramAST(Program):
 # -------------------------------------------------------------------------------
 
 
+class BinaryOperatorTACKY(Enum):
+    ADD = auto()
+    SUBTRACT = auto()
+    MULTIPLY = auto()
+    DIVIDE = auto()
+    REMAINDER = auto()
+
+
 class UnaryOperatorTACKY(Enum):
     COMPLEMENT = auto()
     NEGATE = auto()
@@ -104,6 +112,14 @@ class ReturnTACKY(Instruction):
 class UnaryTACKY(Instruction):
     op: UnaryOperatorTACKY
     src: Val
+    dst: Val
+
+
+@dataclass
+class BinaryTACKY(Instruction):
+    op: BinaryOperatorTACKY
+    src1: Val
+    src2: Val
     dst: Val
 
 
