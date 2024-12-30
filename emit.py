@@ -40,7 +40,14 @@ def output_function(node, s):
         name = node.name
     elif IS_MACOS:
         name = "_" + node.name
-    print(f"\t.globl {name}\n{name}:", file=s)
+    print(
+        f"""\
+\t.globl {name}
+{name}:
+\tpushq %rbp
+\tmovq %rsp, %rbp""",
+        file=s,
+    )
     output_instructions(node.instructions, s)
 
 
@@ -57,13 +64,35 @@ def output_instruction(instruction, s):
             s.write(", ")
             output_operand(dst, s)
             s.write("\n")
+        case asdl.UnaryASM(unop, operand):
+            s.write("\t")
+            output_unary_operator(unop, s)
+            s.write(" ")
+            output_operand(operand, s)
+            s.write("\n")
+        case asdl.AllocateStackASM(int):
+            print(f"\tsubq ${int}, %rsp", file=s)
         case asdl.RetASM():
-            print("\tret", file=s)
+            print(
+                """\
+\tmovq %rbp, %rsp
+\tpopq %rbp
+\tret""",
+                file=s,
+            )
+
+
+def output_unary_operator(unop, s):
+    s.write(unop.value)
 
 
 def output_operand(node, s):
     match node:
         case asdl.ImmASM(int):
             s.write(f"${int}")
-        case asdl.RegisterASM():
+        case asdl.RegisterASM(asdl.RegASM.AX):
             s.write("%eax")
+        case asdl.RegisterASM(asdl.RegASM.R10):
+            s.write("%r10d")
+        case asdl.StackASM(int):
+            s.write(f"{int}(%rbp)")
