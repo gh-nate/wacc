@@ -139,7 +139,9 @@ class ProgramTACKY(Program):
 
 class RegASM(Enum):
     AX = auto()
+    DX = auto()
     R10 = auto()
+    R11 = auto()
 
 
 @dataclass
@@ -168,6 +170,12 @@ class StackASM(Operand):
     int: int
 
 
+class BinaryOperatorASM(Enum):
+    ADD = auto()
+    SUB = auto()
+    MULT = auto()
+
+
 class UnaryOperatorASM(Enum):
     NEG = "negl"
     NOT = "notl"
@@ -177,6 +185,23 @@ class UnaryOperatorASM(Enum):
 class UnaryASM(Instruction):
     op: UnaryOperatorASM
     operand: Operand
+
+
+@dataclass
+class BinaryASM(Instruction):
+    op: BinaryOperatorASM
+    o1: Operand
+    o2: Operand
+
+
+@dataclass
+class IdivASM(Instruction):
+    operand: Operand
+
+
+class CdqASM(Instruction):
+    def __eq__(self, o):
+        return isinstance(o, CdqASM)
 
 
 @dataclass
