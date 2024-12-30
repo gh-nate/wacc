@@ -32,6 +32,10 @@ class Token(Enum):
     BITWISE_COMPLEMENT_OPERATOR = r"~"
     NEGATION_OPERATOR = r"-"
     DECREMENT_OPERATOR = r"--"
+    ADDITION_OPERATOR = r"\+"
+    MULTIPLICATION_OPERATOR = r"\*"
+    DIVISION_OPERATOR = r"/"
+    REMAINDER_OPERATOR = r"%"
 
 
 TOKEN_PATTERNS = {t: re.compile(t.value) for t in Token}
