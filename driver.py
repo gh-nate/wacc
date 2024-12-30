@@ -18,6 +18,7 @@
 from pathlib import Path
 
 import argparse
+import lexer
 import subprocess
 import sys
 
@@ -48,8 +49,9 @@ input_file = Path(arguments.input_file)
 
 preprocessed_file = input_file.with_suffix(".i")
 subprocess.run(["gcc", "-E", "-P", str(input_file), "-o", str(preprocessed_file)])
+with preprocessed_file.open() as f:
+    lexer.tokenize(f.read())
 preprocessed_file.unlink()
-
 if arguments.lex:
     sys.exit()
 
