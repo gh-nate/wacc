@@ -17,6 +17,15 @@ import asdl
 import lexer
 
 
+PRECEDENCE = {
+    "*": 50,
+    "/": 50,
+    "%": 50,
+    "+": 45,
+    "-": 45,
+}
+
+
 class SyntaxError(Exception):
     pass
 
@@ -63,7 +72,18 @@ def parse_statement(tokens):
     return asdl.ReturnAST(exp)
 
 
-def parse_exp(tokens):
+def parse_exp(tokens, min_prec=0):
+    left = parse_factor(tokens)
+    next_token = tokens[0]
+    while next_token in PRECEDENCE and PRECEDENCE[next_token] >= min_prec:
+        operator = parse_binop(tokens)
+        right = parse_exp(tokens, PRECEDENCE[next_token] + 1)
+        left = asdl.BinaryAST(operator, left, right)
+        next_token = tokens[0]
+    return left
+
+
+def parse_factor(tokens):
     next_token = tokens[0]
     if lexer.TOKEN_PATTERNS[lexer.Token.CONSTANT].match(next_token):
         take_token(tokens)
@@ -71,7 +91,7 @@ def parse_exp(tokens):
     elif next_token in ["~", "-"]:
         return asdl.UnaryAST(
             parse_unop(tokens),
-            parse_exp(tokens),
+            parse_factor(tokens),
         )
     elif next_token == "(":
         take_token(tokens)
@@ -89,3 +109,19 @@ def parse_unop(tokens):
             return asdl.UnaryOperatorAST.COMPLEMENT
         case _:
             raise SyntaxError(f"Unknown unary operator: {token}")
+
+
+def parse_binop(tokens):
+    match token := take_token(tokens):
+        case "-":
+            return asdl.BinaryOperatorAST.SUBTRACT
+        case "+":
+            return asdl.BinaryOperatorAST.ADD
+        case "*":
+            return asdl.BinaryOperatorAST.MULTIPLY
+        case "/":
+            return asdl.BinaryOperatorAST.DIVIDE
+        case "%":
+            return asdl.BinaryOperatorAST.REMAINDER
+        case _:
+            raise SyntaxError(f"Unknown binary operator: {token}")

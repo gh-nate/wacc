@@ -30,6 +30,14 @@ Val = type("Val", _bases, _dict)
 # -------------------------------------------------------------------------------
 
 
+class BinaryOperatorAST(Enum):
+    ADD = auto()
+    SUBTRACT = auto()
+    MULTIPLY = auto()
+    DIVIDE = auto()
+    REMAINDER = auto()
+
+
 class UnaryOperatorAST(Enum):
     COMPLEMENT = auto()
     NEGATE = auto()
@@ -44,6 +52,13 @@ class ConstantAST(Exp):
 class UnaryAST(Exp):
     op: UnaryOperatorAST
     exp: Exp
+
+
+@dataclass
+class BinaryAST(Exp):
+    op: BinaryOperatorAST
+    lhs: Exp
+    rhs: Exp
 
 
 @dataclass
