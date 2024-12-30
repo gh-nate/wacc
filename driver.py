@@ -24,6 +24,7 @@ import lexer
 import parser
 import subprocess
 import sys
+import tacky
 
 common_action = "store_true"
 argument_parser = argparse.ArgumentParser()
@@ -34,12 +35,17 @@ argument_parser.add_argument(
 argument_parser.add_argument(
     "--parse",
     action=common_action,
-    help="perform lexing and parsing, but stop before assembly generation",
+    help="perform lexing and parsing, but stop before TACKY generation",
+)
+argument_parser.add_argument(
+    "--tacky",
+    action=common_action,
+    help="perform lexing, parsing, and TACKY generation, but stop before assembly generation",
 )
 argument_parser.add_argument(
     "--codegen",
     action=common_action,
-    help="perform lexing, parsing, and assembly generation, but stop before code emission",
+    help="perform lexing, parsing, TACKY and assembly generation, but stop before code emission",
 )
 argument_parser.add_argument(
     "-S",
@@ -60,6 +66,10 @@ if arguments.lex:
 
 tree = parser.parse(tokens)
 if arguments.parse:
+    sys.exit()
+
+tacky.convert(tree)
+if arguments.tacky:
     sys.exit()
 
 tree = codegen.convert(tree)
