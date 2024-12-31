@@ -189,12 +189,12 @@ class RegASM(Enum):
 
 
 class CondCodeASM(Enum):
-    E = auto()
-    NE = auto()
-    G = auto()
-    GE = auto()
-    L = auto()
-    LE = auto()
+    E = "e"
+    NE = "ne"
+    G = "g"
+    GE = "ge"
+    L = "l"
+    LE = "le"
 
 
 @dataclass
