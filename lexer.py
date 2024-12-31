@@ -45,6 +45,7 @@ class Token(Enum):
     GREATER_THAN_OPERATOR = r">"
     LESS_THAN_OR_EQUAL_TO_OPERATOR = r"<="
     GREATER_THAN_OR_EQUAL_TO_OPERATOR = r">="
+    ASSIGNMENT_OPERATOR = r"="
 
 
 TOKEN_PATTERNS = {t: re.compile(t.value) for t in Token}
