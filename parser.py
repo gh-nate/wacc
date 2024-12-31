@@ -68,14 +68,18 @@ def parse_function_definition(tokens):
     key, name = lexer.Token.IDENTIFIER, take_token(tokens)
     if not lexer.TOKEN_PATTERNS[key].match(name):
         raise SyntaxError(f"'{name}' is not a valid {key}")
-    for token in ["(", "void", ")", "{"]:
+    for token in ["(", "void", ")"]:
         expect(token, tokens)
-    function_body = []
+    return asdl.FunctionAST(name, parse_block(tokens))
+
+
+def parse_block(tokens):
+    expect("{", tokens)
+    items = []
     while tokens[0] != "}":
-        next_block_item = parse_block_item(tokens)
-        function_body.append(next_block_item)
+        items.append(parse_block_item(tokens))
     take_token(tokens)
-    return asdl.FunctionAST(name, function_body)
+    return asdl.BlockAST(items)
 
 
 def parse_block_item(tokens):
@@ -115,6 +119,8 @@ def parse_statement(tokens):
                 take_token(tokens)
                 else_ = parse_statement(tokens)
             return asdl.IfAST(condition, then, else_)
+        case "{":
+            return asdl.CompoundAST(parse_block(tokens))
         case ";":
             take_token(tokens)
             return asdl.NullAST()
