@@ -78,12 +78,37 @@ def output_instruction(instruction, s):
             s.write(", ")
             output_operand(dst, s)
             s.write("\n")
+        case asdl.CmpASM(o1, o2):
+            s.write("\tcmpl ")
+            output_operand(o1, s)
+            s.write(", ")
+            output_operand(o2, s)
+            s.write("\n")
         case asdl.IdivASM(operand):
             s.write("\tidivl ")
             output_operand(operand, s)
             s.write("\n")
         case asdl.CdqASM():
             print("\tcdq", file=s)
+        case asdl.JmpASM(identifier):
+            s.write("\tjmp ")
+            output_label(identifier, s)
+            s.write("\n")
+        case asdl.JmpCcASM(cond_code, identifier):
+            s.write("\tj")
+            output_cond_code(cond_code, s)
+            s.write(" ")
+            output_label(identifier, s)
+            s.write("\n")
+        case asdl.SetCcASM(cond_code, operand):
+            s.write("\tset")
+            output_cond_code(cond_code, s)
+            s.write(" ")
+            output_operand(operand, s, 1)
+            s.write("\n")
+        case asdl.LabelASM(identifier):
+            output_label(identifier, s)
+            print(":", file=s)
         case asdl.AllocateStackASM(int):
             print(f"\tsubq ${int}, %rsp", file=s)
         case asdl.RetASM():
@@ -101,19 +126,43 @@ def output_unary_operator(unop, s):
 
 
 output_binary_operator = output_unary_operator
+output_cond_code = output_binary_operator
 
 
-def output_operand(node, s):
+def output_operand(node, s, nbytes=4):
     match node:
         case asdl.ImmASM(int):
             s.write(f"${int}")
         case asdl.RegisterASM(asdl.RegASM.AX):
-            s.write("%eax")
+            match nbytes:
+                case 4:
+                    s.write("%eax")
+                case 1:
+                    s.write("%al")
         case asdl.RegisterASM(asdl.RegASM.DX):
-            s.write("%edx")
+            match nbytes:
+                case 4:
+                    s.write("%edx")
+                case 1:
+                    s.write("%dl")
         case asdl.RegisterASM(asdl.RegASM.R10):
-            s.write("%r10d")
+            match nbytes:
+                case 4:
+                    s.write("%r10d")
+                case 1:
+                    s.write("%r10b")
         case asdl.RegisterASM(asdl.RegASM.R11):
-            s.write("%r11d")
+            match nbytes:
+                case 4:
+                    s.write("%r11d")
+                case 1:
+                    s.write("%r11b")
         case asdl.StackASM(int):
             s.write(f"{int}(%rbp)")
+
+
+def output_label(label, s):
+    if IS_LINUX:
+        s.write(".L" + label)
+    elif IS_MACOS:
+        s.write("L" + label)
