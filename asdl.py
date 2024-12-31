@@ -85,6 +85,13 @@ class AssignmentAST(Exp):
 
 
 @dataclass
+class ConditionalAST(Exp):
+    condition: Exp
+    e1: Exp
+    e2: Exp
+
+
+@dataclass
 class ReturnAST(Statement):
     exp: Exp
 
@@ -92,6 +99,13 @@ class ReturnAST(Statement):
 @dataclass
 class ExpressionAST(Statement):
     exp: Exp
+
+
+@dataclass
+class IfAST(Statement):
+    condition: Exp
+    then: Statement
+    else_: Statement | None
 
 
 class NullAST(Statement):

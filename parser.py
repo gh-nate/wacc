@@ -31,6 +31,7 @@ PRECEDENCE = {
     "!=": 30,
     "&&": 10,
     "||": 5,
+    "?": 3,
     "=": 1,
 }
 
@@ -103,6 +104,17 @@ def parse_statement(tokens):
             exp = parse_exp(tokens)
             expect(";", tokens)
             return asdl.ReturnAST(exp)
+        case "if":
+            take_token(tokens)
+            expect("(", tokens)
+            condition = parse_exp(tokens)
+            expect(")", tokens)
+            then = parse_statement(tokens)
+            else_ = None
+            if tokens[0] == "else":
+                take_token(tokens)
+                else_ = parse_statement(tokens)
+            return asdl.IfAST(condition, then, else_)
         case ";":
             take_token(tokens)
             return asdl.NullAST()
@@ -116,16 +128,28 @@ def parse_exp(tokens, min_prec=0):
     left = parse_factor(tokens)
     next_token = tokens[0]
     while next_token in PRECEDENCE and PRECEDENCE[next_token] >= min_prec:
-        if next_token == "=":
-            take_token(tokens)
-            right = parse_exp(tokens, PRECEDENCE[next_token])
-            left = asdl.AssignmentAST(left, right)
-        else:
-            operator = parse_binop(tokens)
-            right = parse_exp(tokens, PRECEDENCE[next_token] + 1)
-            left = asdl.BinaryAST(operator, left, right)
+        match next_token:
+            case "=":
+                take_token(tokens)
+                right = parse_exp(tokens, PRECEDENCE[next_token])
+                left = asdl.AssignmentAST(left, right)
+            case "?":
+                middle = parse_conditional_middle(tokens)
+                right = parse_exp(tokens, PRECEDENCE[next_token])
+                left = asdl.ConditionalAST(left, middle, right)
+            case _:
+                operator = parse_binop(tokens)
+                right = parse_exp(tokens, PRECEDENCE[next_token] + 1)
+                left = asdl.BinaryAST(operator, left, right)
         next_token = tokens[0]
     return left
+
+
+def parse_conditional_middle(tokens):
+    expect("?", tokens)
+    condition = parse_exp(tokens)
+    expect(":", tokens)
+    return condition
 
 
 def parse_factor(tokens):
