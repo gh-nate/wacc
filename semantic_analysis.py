@@ -62,6 +62,10 @@ def resolve_statement(statement, variable_map):
     match statement:
         case asdl.ReturnAST(e) | asdl.ExpressionAST(e):
             resolve_exp(e, variable_map)
+        case asdl.IfAST(condition, then, else_):
+            resolve_exp(condition, variable_map)
+            resolve_statement(then, variable_map)
+            resolve_statement(else_, variable_map)
 
 
 def resolve_exp(e, variable_map):
@@ -80,3 +84,7 @@ def resolve_exp(e, variable_map):
                 raise ResolutionError(f"Invalid lvalue: {left}!")
             resolve_exp(left, variable_map)
             resolve_exp(right, variable_map)
+        case asdl.ConditionalAST(condition, e1, e2):
+            resolve_exp(condition, variable_map)
+            resolve_exp(e1, variable_map)
+            resolve_exp(e2, variable_map)
