@@ -22,6 +22,8 @@ class G:
         self.and_false = self._mk_inc("and_false")
         self.or_true = self._mk_inc("or_true")
         self.end = self._mk_inc("end")
+        self.else_ = self._mk_inc("else")
+        self.e2 = self._mk_inc("e2_")
 
     def _mk_inc(self, prefix):
         count = 0
@@ -40,6 +42,12 @@ class G:
 
     def make_end_label(self):
         return next(self.end)
+
+    def make_else_label(self):
+        return next(self.else_)
+
+    def make_e2_label(self):
+        return next(self.e2)
 
 
 def convert(tree):
@@ -74,6 +82,22 @@ def convert_statement(g, node):
             instructions.append(asdl.ReturnTACKY(v))
         case asdl.ExpressionAST(e):
             emit_tacky(g, e, instructions)
+        case asdl.IfAST(condition, then, else_):
+            if else_:
+                else_label = g.make_else_label()
+            end_label = g.make_end_label()
+            c = emit_tacky(g, condition, instructions)
+            instructions.append(
+                asdl.JumpIfZeroTACKY(c, else_label if else_ else end_label)
+            )
+            instructions.extend(convert_statement(g, then))
+            if else_:
+                instructions += [
+                    asdl.JumpTACKY(end_label),
+                    asdl.LabelTACKY(else_label),
+                ]
+                instructions.extend(convert_statement(g, else_))
+            instructions.append(asdl.LabelTACKY(end_label))
     return instructions
 
 
@@ -176,3 +200,20 @@ def emit_tacky(g, exp, instructions):
             lhs = asdl.VarTACKY(v)
             instructions.append(asdl.CopyTACKY(result, lhs))
             return lhs
+        case asdl.ConditionalAST(condition, e1, e2):
+            end_label, e2_label = g.make_end_label(), g.make_e2_label()
+            result = asdl.VarTACKY(g.make_temp_vars())
+            c = emit_tacky(g, condition, instructions)
+            instructions.append(asdl.JumpIfZeroTACKY(c, e2_label))
+            v1 = emit_tacky(g, e1, instructions)
+            instructions += [
+                asdl.CopyTACKY(v1, result),
+                asdl.JumpTACKY(end_label),
+                asdl.LabelTACKY(e2_label),
+            ]
+            v2 = emit_tacky(g, e2, instructions)
+            instructions += [
+                asdl.CopyTACKY(v2, result),
+                asdl.LabelTACKY(end_label),
+            ]
+            return result
