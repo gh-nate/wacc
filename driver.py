@@ -22,6 +22,7 @@ import codegen
 import emit
 import lexer
 import parser
+import semantic_analysis
 import subprocess
 import sys
 import tacky
@@ -35,17 +36,22 @@ argument_parser.add_argument(
 argument_parser.add_argument(
     "--parse",
     action=common_action,
-    help="perform lexing and parsing, but stop before TACKY generation",
+    help="perform lexing and parsing, but stop before semantic analysis",
+)
+argument_parser.add_argument(
+    "--validate",
+    action=common_action,
+    help="perform lexing, parsing, and semantic analysis, but stop before TACKY generation",
 )
 argument_parser.add_argument(
     "--tacky",
     action=common_action,
-    help="perform lexing, parsing, and TACKY generation, but stop before assembly generation",
+    help="perform lexing, parsing, semantic analysis, and TACKY generation, but stop before assembly generation",
 )
 argument_parser.add_argument(
     "--codegen",
     action=common_action,
-    help="perform lexing, parsing, TACKY and assembly generation, but stop before code emission",
+    help="perform lexing, parsing, semantic analysis, TACKY and assembly generation, but stop before code emission",
 )
 argument_parser.add_argument(
     "-S",
@@ -66,6 +72,10 @@ if arguments.lex:
 
 tree = parser.parse(tokens)
 if arguments.parse:
+    sys.exit()
+
+semantic_analysis.analyze(tree)
+if arguments.validate:
     sys.exit()
 
 tree = tacky.convert(tree)
