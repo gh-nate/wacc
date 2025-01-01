@@ -60,17 +60,28 @@ def parse(tokens):
 
 
 def parse_program(tokens):
-    return asdl.ProgramAST(parse_function_definition(tokens))
+    function_declarations = []
+    while tokens:
+        function_declarations.append(parse_declaration(tokens))
+    return asdl.ProgramAST(function_declarations)
 
 
-def parse_function_definition(tokens):
-    expect("int", tokens)
-    key, name = lexer.Token.IDENTIFIER, take_token(tokens)
-    if not lexer.TOKEN_PATTERNS[key].match(name):
-        raise SyntaxError(f"'{name}' is not a valid {key}")
-    for token in ["(", "void", ")"]:
-        expect(token, tokens)
-    return asdl.FunctionAST(name, parse_block(tokens))
+def parse_param_list(tokens):
+    params = []
+    if tokens[0] == "void":
+        take_token(tokens)
+        return params
+    while True:
+        expect("int", tokens)
+        key, next_token = lexer.Token.IDENTIFIER, take_token(tokens)
+        if not lexer.TOKEN_PATTERNS[key].match(next_token):
+            raise SyntaxError(f"'{next_token}' is not a valid {key}")
+        params.append(next_token)
+        if tokens[0] == ",":
+            take_token(tokens)
+        else:
+            break
+    return params
 
 
 def parse_block(tokens):
@@ -90,7 +101,10 @@ def parse_block_item(tokens):
 
 def parse_for_init(tokens):
     if tokens[0] == "int":
-        return asdl.InitDeclAST(parse_declaration(tokens))
+        decl = parse_declaration(tokens)
+        if not isinstance(decl, asdl.VariableDeclaration):
+            raise SyntaxError(f"Unexpected declaration: {decl}")
+        return asdl.InitDeclAST(decl)
     exp, token = None, ";"
     if tokens[0] != token:
         exp = parse_exp(tokens)
@@ -104,11 +118,22 @@ def parse_declaration(tokens):
     if not lexer.TOKEN_PATTERNS[lexer.Token.IDENTIFIER].match(name):
         raise SyntaxError(f"Not an identifier: {name}")
     exp = None
-    if tokens[0] == "=":
-        take_token(tokens)
-        exp = parse_exp(tokens)
+    match tokens[0]:
+        case "(":
+            take_token(tokens)
+            params = parse_param_list(tokens)
+            expect(")", tokens)
+            body = None
+            if tokens[0] == ";":
+                take_token(tokens)
+            else:
+                body = parse_block(tokens)
+            return asdl.FuncDeclAST(name, params, body)
+        case "=":
+            take_token(tokens)
+            exp = parse_exp(tokens)
     expect(";", tokens)
-    return asdl.DeclarationAST(name, exp)
+    return asdl.VarDeclAST(name, exp)
 
 
 def parse_statement(tokens):
@@ -227,6 +252,13 @@ def parse_factor(tokens):
             if lexer.TOKEN_PATTERNS[keyword].match(next_token):
                 raise SyntaxError(f"{next_token} is a keyword and not an identifier")
         take_token(tokens)
+        if tokens[0] == "(":
+            take_token(tokens)
+            args, token = [], ")"
+            if tokens[0] != token:
+                args.extend(parse_argument_list(tokens))
+            expect(token, tokens)
+            return asdl.FunctionCallAST(next_token, args)
         return asdl.VarAST(next_token)
     elif next_token in ["~", "-", "!"]:
         return asdl.UnaryAST(
@@ -239,6 +271,14 @@ def parse_factor(tokens):
         expect(")", tokens)
         return inner_exp
     raise SyntaxError(f"Malformed expression: {next_token}")
+
+
+def parse_argument_list(tokens):
+    r = [parse_exp(tokens)]
+    while tokens[0] == ",":
+        take_token(tokens)
+        r.append(parse_exp(tokens))
+    return r
 
 
 def parse_unop(tokens):
