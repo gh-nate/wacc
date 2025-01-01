@@ -55,6 +55,7 @@ class Token(Enum):
     FOR_KEYWORD = r"for\b"
     BREAK_KEYWORD = r"break\b"
     CONTINUE_KEYWORD = r"continue\b"
+    COMMA = r","
 
 
 TOKEN_PATTERNS = {t: re.compile(t.value) for t in Token}
