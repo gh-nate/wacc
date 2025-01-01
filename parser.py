@@ -88,6 +88,16 @@ def parse_block_item(tokens):
     return asdl.SAST(parse_statement(tokens))
 
 
+def parse_for_init(tokens):
+    if tokens[0] == "int":
+        return asdl.InitDeclAST(parse_declaration(tokens))
+    exp, token = None, ";"
+    if tokens[0] != token:
+        exp = parse_exp(tokens)
+    expect(token, tokens)
+    return asdl.InitExpAST(exp)
+
+
 def parse_declaration(tokens):
     expect("int", tokens)
     name = take_token(tokens)
@@ -121,6 +131,44 @@ def parse_statement(tokens):
             return asdl.IfAST(condition, then, else_)
         case "{":
             return asdl.CompoundAST(parse_block(tokens))
+        case "break":
+            take_token(tokens)
+            expect(";", tokens)
+            return asdl.BreakAST("")
+        case "continue":
+            take_token(tokens)
+            expect(";", tokens)
+            return asdl.ContinueAST("")
+        case "while":
+            take_token(tokens)
+            expect("(", tokens)
+            condition = parse_exp(tokens)
+            expect(")", tokens)
+            body = parse_statement(tokens)
+            return asdl.WhileAST(condition, body, "")
+        case "do":
+            take_token(tokens)
+            body = parse_statement(tokens)
+            for token in ["while", "("]:
+                expect(token, tokens)
+            condition = parse_exp(tokens)
+            for token in [")", ";"]:
+                expect(token, tokens)
+            return asdl.DoWhileAST(body, condition, "")
+        case "for":
+            take_token(tokens)
+            expect("(", tokens)
+            init = parse_for_init(tokens)
+            condition, token = None, ";"
+            if tokens[0] != token:
+                condition = parse_exp(tokens)
+            expect(token, tokens)
+            post, token = None, ")"
+            if tokens[0] != token:
+                post = parse_exp(tokens)
+            expect(token, tokens)
+            body = parse_statement(tokens)
+            return asdl.ForAST(init, condition, post, body, "")
         case ";":
             take_token(tokens)
             return asdl.NullAST()
