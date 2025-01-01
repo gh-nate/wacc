@@ -21,15 +21,16 @@ from enum import Enum, auto
 _bases, _dict = (ABC,), {}
 Block = type("Block", _bases, _dict)
 BlockItem = type("BlockItem", _bases, _dict)
-Declaration = type("Declaration", _bases, _dict)
 Exp = type("Exp", _bases, _dict)
 ForInit = type("ForInit", _bases, _dict)
+FunctionDeclaration = type("FunctionDeclaration", _bases, _dict)
 FunctionDefinition = type("FunctionDefinition", _bases, _dict)
 Instruction = type("Instruction", _bases, _dict)
 Operand = type("Operand", _bases, _dict)
 Program = type("Program", _bases, _dict)
 Statement = type("Statement", _bases, _dict)
 Val = type("Val", _bases, _dict)
+VariableDeclaration = type("VariableDeclaration", _bases, _dict)
 
 # -------------------------------------------------------------------------------
 
@@ -94,6 +95,12 @@ class ConditionalAST(Exp):
 
 
 @dataclass
+class FunctionCallAST(Exp):
+    name: str
+    args: list[Exp]
+
+
+@dataclass
 class ReturnAST(Statement):
     exp: Exp
 
@@ -155,18 +162,12 @@ class NullAST(Statement):
 
 @dataclass
 class InitDeclAST(ForInit):
-    decl: Declaration
+    variable_declaration: VariableDeclaration
 
 
 @dataclass
 class InitExpAST(ForInit):
     exp: Exp | None
-
-
-@dataclass
-class DeclarationAST(Declaration):
-    name: str
-    init: Exp | None
 
 
 @dataclass
@@ -181,18 +182,25 @@ class SAST(BlockItem):
 
 @dataclass
 class DAST(BlockItem):
-    declaration: Declaration
+    declaration: FunctionDeclaration | VariableDeclaration
 
 
 @dataclass
-class FunctionAST(FunctionDefinition):
+class FuncDeclAST(FunctionDeclaration):
     name: str
-    body: Block
+    params: list[str]
+    body: Block | None
+
+
+@dataclass
+class VarDeclAST(VariableDeclaration):
+    name: str
+    init: Exp | None
 
 
 @dataclass
 class ProgramAST(Program):
-    function_definition: FunctionDefinition
+    function_declarations: list[FunctionDeclaration]
 
 
 # -------------------------------------------------------------------------------
