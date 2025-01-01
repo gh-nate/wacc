@@ -15,21 +15,90 @@
 
 import asdl
 
+ARG_REGISTERS = [
+    asdl.RegASM.DI,
+    asdl.RegASM.SI,
+    asdl.RegASM.DX,
+    asdl.RegASM.CX,
+    asdl.RegASM.R8,
+    asdl.RegASM.R9,
+]
+NUM_ARGS_IN_REGISTERS = len(ARG_REGISTERS)
+
 
 def convert(tree):
     tree = convert_program(tree)
-    instructions = tree.function_definition.instructions
-    stack_offset = replace_pseudoregisters(instructions)
-    fix_instructions(instructions, stack_offset)
+    for function_definition in tree.function_definitions:
+        stack_offset = replace_pseudoregisters(function_definition.instructions)
+        fix_instructions(function_definition.instructions, stack_offset)
     return tree
 
 
 def convert_program(tree):
-    return asdl.ProgramASM(convert_function_definition(tree.function_definition))
+    return asdl.ProgramASM(
+        [
+            convert_function_definition(function_definition)
+            for function_definition in tree.function_definitions
+        ]
+    )
 
 
 def convert_function_definition(node):
-    return asdl.FunctionASM(node.identifier, convert_instructions(node.body))
+    instructions = []
+    for arg_register, param in zip(ARG_REGISTERS, node.params[:NUM_ARGS_IN_REGISTERS]):
+        instructions.append(
+            asdl.MovASM(asdl.RegisterASM(arg_register), asdl.PseudoASM(param))
+        )
+    stack_offset = 16
+    for param in node.params[NUM_ARGS_IN_REGISTERS:]:
+        instructions.append(
+            asdl.MovASM(asdl.StackASM(stack_offset), asdl.PseudoASM(param))
+        )
+        stack_offset += 8
+    return asdl.FunctionASM(
+        node.identifier, instructions + convert_instructions(node.body)
+    )
+
+
+def convert_function_call(fc):
+    instructions = []
+
+    # Adjust stack alignment.
+    register_args, stack_args = (
+        fc.args[:NUM_ARGS_IN_REGISTERS],
+        fc.args[NUM_ARGS_IN_REGISTERS:],
+    )
+    stack_args.reverse()
+    if stack_padding := 8 if len(stack_args) % 2 else 0:
+        instructions.append(asdl.AllocateStackASM(stack_padding))
+
+    # Pass args in registers.
+    for arg_register, tacky_arg in zip(ARG_REGISTERS, register_args):
+        instructions.append(
+            asdl.MovASM(convert_val(tacky_arg), asdl.RegisterASM(arg_register))
+        )
+
+    # Pass args on stack.
+    rax = asdl.RegisterASM(asdl.RegASM.AX)
+    for tacky_arg in stack_args:
+        assembly_arg = convert_val(tacky_arg)
+        if isinstance(assembly_arg, asdl.ImmASM):
+            instructions.append(asdl.PushASM(assembly_arg))
+        else:
+            instructions += [
+                asdl.MovASM(assembly_arg, rax),
+                asdl.PushASM(rax),
+            ]
+
+    instructions.append(asdl.CallASM(fc.fun_name))
+
+    # Adjust stack pointer.
+    if bytes_to_remove := 8 * len(stack_args) + stack_padding:
+        instructions.append(asdl.DeallocateStackASM(bytes_to_remove))
+
+    # Retrieve return value.
+    instructions.append(asdl.MovASM(rax, convert_val(fc.dst)))
+    return instructions
 
 
 def convert_instructions(tacky_instructions):
@@ -116,6 +185,8 @@ def convert_instruction(tacky_instruction):
             ]
         case asdl.LabelTACKY(identifier):
             return [asdl.LabelASM(identifier)]
+        case asdl.FunCallTACKY():
+            return convert_function_call(tacky_instruction)
 
 
 def convert_relational_operator(operator):
@@ -178,6 +249,7 @@ def replace_pseudoregisters(instructions):
                 asdl.UnaryASM(_, asdl.PseudoASM(identifier))
                 | asdl.IdivASM(asdl.PseudoASM(identifier))
                 | asdl.SetCcASM(_, asdl.PseudoASM(identifier))
+                | asdl.PushASM(asdl.PseudoASM(identifier))
             ):
                 instructions[index].operand = replace(identifier)
             case asdl.BinaryASM(_, o1, o2) | asdl.CmpASM(o1, o2):
@@ -191,7 +263,9 @@ def replace_pseudoregisters(instructions):
 
 def fix_instructions(instructions, stack_offset):
     index = 0
-    instructions.insert(index, asdl.AllocateStackASM(stack_offset))
+    instructions.insert(
+        index, asdl.AllocateStackASM(stack_offset + 16 - stack_offset % 16)
+    )
     index += 1
     r10 = asdl.RegisterASM(asdl.RegASM.R10)
     r11 = asdl.RegisterASM(asdl.RegASM.R11)

@@ -322,7 +322,12 @@ class ProgramTACKY(Program):
 
 class RegASM(Enum):
     AX = auto()
+    CX = auto()
     DX = auto()
+    DI = auto()
+    SI = auto()
+    R8 = auto()
+    R9 = auto()
     R10 = auto()
     R11 = auto()
 
@@ -429,6 +434,21 @@ class AllocateStackASM(Instruction):
     int: int
 
 
+@dataclass
+class DeallocateStackASM(Instruction):
+    int: int
+
+
+@dataclass
+class PushASM(Instruction):
+    operand: Operand
+
+
+@dataclass
+class CallASM(Instruction):
+    identifier: str
+
+
 class RetASM(Instruction):
     def __eq__(self, o):
         return isinstance(o, RetASM)
@@ -442,4 +462,4 @@ class FunctionASM(FunctionDefinition):
 
 @dataclass
 class ProgramASM(Program):
-    function_definition: FunctionDefinition
+    function_definitions: list[FunctionDefinition]
