@@ -79,6 +79,7 @@ def convert_block_item(g, node):
 
 
 def convert_statement(g, node):
+    break_prefix, continue_prefix = "break_", "continue_"
     instructions = []
     match node:
         case asdl.ReturnAST(e):
@@ -104,6 +105,49 @@ def convert_statement(g, node):
             instructions.append(asdl.LabelTACKY(end_label))
         case asdl.CompoundAST(block):
             convert_block(g, block, instructions)
+        case asdl.BreakAST(label):
+            instructions.append(asdl.JumpTACKY(break_prefix + label))
+        case asdl.ContinueAST(label):
+            instructions.append(asdl.JumpTACKY(continue_prefix + label))
+        case asdl.WhileAST(condition, body, label):
+            continue_label = continue_prefix + label
+            instructions.append(asdl.LabelTACKY(continue_label))
+            c = emit_tacky(g, condition, instructions)
+            break_label = break_prefix + label
+            instructions.append(asdl.JumpIfZeroTACKY(c, break_label))
+            instructions.extend(convert_statement(g, body))
+            instructions += [
+                asdl.JumpTACKY(continue_label),
+                asdl.LabelTACKY(break_label),
+            ]
+        case asdl.DoWhileAST(body, condition, label):
+            instructions.append(asdl.LabelTACKY(label))
+            instructions.extend(convert_statement(g, body))
+            instructions.append(asdl.LabelTACKY(continue_prefix + label))
+            c = emit_tacky(g, condition, instructions)
+            instructions += [
+                asdl.JumpIfNotZeroTACKY(c, label),
+                asdl.LabelTACKY(break_prefix + label),
+            ]
+        case asdl.ForAST(init, condition, post, body, label):
+            match init:
+                case asdl.InitDeclAST(d):
+                    instructions.extend(convert_declaration(g, d))
+                case asdl.InitExpAST(e):
+                    emit_tacky(g, e, instructions)
+            instructions.append(asdl.LabelTACKY(label))
+            break_label = break_prefix + label
+            if condition:
+                c = emit_tacky(g, condition, instructions)
+                instructions.append(asdl.JumpIfZeroTACKY(c, break_label))
+            instructions.extend(convert_statement(g, body))
+            continue_label = continue_prefix + label
+            instructions.append(asdl.LabelTACKY(continue_label))
+            emit_tacky(g, post, instructions)
+            instructions += [
+                asdl.JumpTACKY(label),
+                asdl.LabelTACKY(break_label),
+            ]
     return instructions
 
 
