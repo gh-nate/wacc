@@ -50,6 +50,11 @@ class Token(Enum):
     ELSE_KEYWORD = r"else\b"
     QUESTION_MARK_DELIMITER = r"\?"
     COLON_DELIMITER = r":"
+    DO_KEYWORD = r"do\b"
+    WHILE_KEYWORD = r"while\b"
+    FOR_KEYWORD = r"for\b"
+    BREAK_KEYWORD = r"break\b"
+    CONTINUE_KEYWORD = r"continue\b"
 
 
 TOKEN_PATTERNS = {t: re.compile(t.value) for t in Token}
