@@ -55,27 +55,34 @@ def convert(tree):
 
 
 def convert_program(tree):
-    return asdl.ProgramTACKY(convert_function_definition(tree.function_definition))
+    function_definitions, g = [], G()
+    for function_declaration in tree.function_declarations:
+        if function_declaration.body:
+            function_definitions.append(
+                convert_function_declaration(g, function_declaration)
+            )
+    return asdl.ProgramTACKY(function_definitions)
 
 
-def convert_function_definition(node):
+def convert_function_declaration(g, node):
     instructions = []
-    convert_block(G(), node.body, instructions)
+    convert_block(g, node.body, instructions)
     instructions.append(asdl.ReturnTACKY(asdl.ConstantTACKY(0)))
-    return asdl.FunctionTACKY(node.name, instructions)
+    return asdl.FunctionTACKY(node.name, node.params, instructions)
 
 
 def convert_block(g, block, instructions):
     for block_item in block.items:
-        instructions.extend(convert_block_item(g, block_item))
+        if r := convert_block_item(g, block_item):
+            instructions.extend(r)
 
 
 def convert_block_item(g, node):
     match node:
         case asdl.SAST(statement):
             return convert_statement(g, statement)
-        case asdl.DAST(declaration):
-            return convert_declaration(g, declaration)
+        case asdl.DAST(asdl.VarDeclAST()):
+            return convert_variable_declaration(g, node.declaration)
 
 
 def convert_statement(g, node):
@@ -132,7 +139,7 @@ def convert_statement(g, node):
         case asdl.ForAST(init, condition, post, body, label):
             match init:
                 case asdl.InitDeclAST(d):
-                    instructions.extend(convert_declaration(g, d))
+                    instructions.extend(convert_variable_declaration(g, d))
                 case asdl.InitExpAST(e):
                     emit_tacky(g, e, instructions)
             instructions.append(asdl.LabelTACKY(label))
@@ -151,7 +158,7 @@ def convert_statement(g, node):
     return instructions
 
 
-def convert_declaration(g, node):
+def convert_variable_declaration(g, node):
     instructions = []
     if init := node.init:
         v = emit_tacky(g, init, instructions)
@@ -267,3 +274,14 @@ def emit_tacky(g, exp, instructions):
                 asdl.LabelTACKY(end_label),
             ]
             return result
+        case asdl.FunctionCallAST(name, args):
+            args = [emit_tacky(g, arg, instructions) for arg in args]
+            dst = asdl.VarTACKY(g.make_temp_vars())
+            instructions.append(
+                asdl.FunCallTACKY(
+                    name,
+                    args,
+                    dst,
+                )
+            )
+            return dst
