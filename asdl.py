@@ -29,6 +29,7 @@ Instruction = type("Instruction", _bases, _dict)
 Operand = type("Operand", _bases, _dict)
 Program = type("Program", _bases, _dict)
 Statement = type("Statement", _bases, _dict)
+Type = type("Type", _bases, _dict)
 Val = type("Val", _bases, _dict)
 VariableDeclaration = type("VariableDeclaration", _bases, _dict)
 
@@ -201,6 +202,19 @@ class VarDeclAST(VariableDeclaration):
 @dataclass
 class ProgramAST(Program):
     function_declarations: list[FunctionDeclaration]
+
+
+# -------------------------------------------------------------------------------
+
+
+class IntType(Type):
+    def __eq__(self, o):
+        return isinstance(o, IntType)
+
+
+@dataclass
+class FunType(Type):
+    param_count: int
 
 
 # -------------------------------------------------------------------------------
