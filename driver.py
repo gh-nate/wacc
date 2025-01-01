@@ -58,6 +58,11 @@ argument_parser.add_argument(
     action=common_action,
     help="emit an assembly file, but not assemble or link it",
 )
+argument_parser.add_argument(
+    "-c",
+    action=common_action,
+    help="convert the assembly program into an object file",
+)
 arguments = argument_parser.parse_args()
 
 input_file = Path(arguments.input_file)
@@ -92,5 +97,10 @@ with assembly_file.open("w") as f:
 if arguments.S:
     sys.exit()
 
-subprocess.run(["gcc", str(assembly_file), "-o", str(input_file.with_suffix(""))])
+args = ["gcc"]
+if arguments.c:
+    args += ["-c", str(assembly_file), "-o", str(input_file.with_suffix(".o"))]
+else:
+    args += [str(assembly_file), "-o", str(input_file.with_suffix(""))]
+subprocess.run(args)
 assembly_file.unlink()
