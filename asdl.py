@@ -286,14 +286,22 @@ class LabelTACKY(Instruction):
 
 
 @dataclass
+class FunCallTACKY(Instruction):
+    fun_name: str
+    args: list[Val]
+    dst: Val
+
+
+@dataclass
 class FunctionTACKY(FunctionDefinition):
     identifier: str
+    params: list[str]
     body: list[Instruction]
 
 
 @dataclass
 class ProgramTACKY(FunctionDefinition):
-    function_definition: FunctionDefinition
+    function_definitions: list[FunctionDefinition]
 
 
 # -------------------------------------------------------------------------------
