@@ -32,7 +32,8 @@ def output(tree):
 
 
 def output_program(tree, s):
-    output_function(tree.function_definition, s)
+    for function_definition in tree.function_definitions:
+        output_function(function_definition, s)
 
 
 def output_function(node, s):
@@ -111,6 +112,18 @@ def output_instruction(instruction, s):
             print(":", file=s)
         case asdl.AllocateStackASM(int):
             print(f"\tsubq ${int}, %rsp", file=s)
+        case asdl.DeallocateStackASM(int):
+            print(f"\taddq ${int}, %rsp", file=s)
+        case asdl.PushASM(operand):
+            s.write("\tpushq ")
+            output_operand(operand, s, 8)
+            s.write("\n")
+        case asdl.CallASM(identifier):
+            if IS_LINUX:
+                name = identifier + "@PLT"
+            elif IS_MACOS:
+                name = "_" + identifier
+            print("\tcall " + name, file=s)
         case asdl.RetASM():
             print(
                 """\
@@ -134,29 +147,23 @@ def output_operand(node, s, nbytes=4):
         case asdl.ImmASM(int):
             s.write(f"${int}")
         case asdl.RegisterASM(asdl.RegASM.AX):
-            match nbytes:
-                case 4:
-                    s.write("%eax")
-                case 1:
-                    s.write("%al")
+            s.write({8: "%rax", 4: "%eax", 1: "%al"}[nbytes])
         case asdl.RegisterASM(asdl.RegASM.DX):
-            match nbytes:
-                case 4:
-                    s.write("%edx")
-                case 1:
-                    s.write("%dl")
+            s.write({8: "%rdx", 4: "%edx", 1: "%dl"}[nbytes])
+        case asdl.RegisterASM(asdl.RegASM.CX):
+            s.write({8: "%rcx", 4: "%ecx", 1: "%cl"}[nbytes])
+        case asdl.RegisterASM(asdl.RegASM.DI):
+            s.write({8: "%rdi", 4: "%edi", 1: "%dil"}[nbytes])
+        case asdl.RegisterASM(asdl.RegASM.SI):
+            s.write({8: "%rsi", 4: "%esi", 1: "%sil"}[nbytes])
+        case asdl.RegisterASM(asdl.RegASM.R8):
+            s.write({8: "%r8", 4: "%r8d", 1: "%r8b"}[nbytes])
+        case asdl.RegisterASM(asdl.RegASM.R9):
+            s.write({8: "%r9", 4: "%r9d", 1: "%r9b"}[nbytes])
         case asdl.RegisterASM(asdl.RegASM.R10):
-            match nbytes:
-                case 4:
-                    s.write("%r10d")
-                case 1:
-                    s.write("%r10b")
+            s.write({8: "%r10", 4: "%r10d", 1: "%r10b"}[nbytes])
         case asdl.RegisterASM(asdl.RegASM.R11):
-            match nbytes:
-                case 4:
-                    s.write("%r11d")
-                case 1:
-                    s.write("%r11b")
+            s.write({8: "%r11", 4: "%r11d", 1: "%r11b"}[nbytes])
         case asdl.StackASM(int):
             s.write(f"{int}(%rbp)")
 
