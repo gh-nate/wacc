@@ -51,13 +51,37 @@ def convert_program(tree):
 
 
 def convert_function_definition(node):
-    return asdl.FunctionTACKY(node.name, convert_statement(node.body))
+    g, instructions = G(), []
+    for block_item in node.body:
+        instructions.extend(convert_block_item(g, block_item))
+    instructions.append(asdl.ReturnTACKY(asdl.ConstantTACKY(0)))
+    return asdl.FunctionTACKY(node.name, instructions)
 
 
-def convert_statement(node):
+def convert_block_item(g, node):
+    match node:
+        case asdl.SAST(statement):
+            return convert_statement(g, statement)
+        case asdl.DAST(declaration):
+            return convert_declaration(g, declaration)
+
+
+def convert_statement(g, node):
     instructions = []
-    v = emit_tacky(G(), node.exp, instructions)
-    instructions.append(asdl.ReturnTACKY(v))
+    match node:
+        case asdl.ReturnAST(e):
+            v = emit_tacky(g, e, instructions)
+            instructions.append(asdl.ReturnTACKY(v))
+        case asdl.ExpressionAST(e):
+            emit_tacky(g, e, instructions)
+    return instructions
+
+
+def convert_declaration(g, node):
+    instructions = []
+    if init := node.init:
+        v = emit_tacky(g, init, instructions)
+        instructions.append(asdl.CopyTACKY(v, asdl.VarTACKY(node.name)))
     return instructions
 
 
@@ -101,6 +125,8 @@ def emit_tacky(g, exp, instructions):
     match exp:
         case asdl.ConstantAST(int):
             return asdl.ConstantTACKY(int)
+        case asdl.VarAST(v):
+            return asdl.VarTACKY(v)
         case asdl.UnaryAST(op, inner):
             src = emit_tacky(g, inner, instructions)
             dst = asdl.VarTACKY(g.make_temp_vars())
@@ -145,3 +171,8 @@ def emit_tacky(g, exp, instructions):
                         asdl.BinaryTACKY(convert_binop(op), v1, v2, dst)
                     )
             return dst
+        case asdl.AssignmentAST(asdl.VarAST(v), rhs):
+            result = emit_tacky(g, rhs, instructions)
+            lhs = asdl.VarTACKY(v)
+            instructions.append(asdl.CopyTACKY(result, lhs))
+            return lhs
