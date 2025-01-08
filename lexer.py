@@ -56,6 +56,8 @@ class Token(Enum):
     BREAK_KEYWORD = r"break\b"
     CONTINUE_KEYWORD = r"continue\b"
     COMMA = r","
+    STATIC_KEYWORD = r"static\b"
+    EXTERN_KEYWORD = r"extern\b"
 
 
 TOKEN_PATTERNS = {t: re.compile(t.value) for t in Token}
