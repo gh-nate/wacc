@@ -34,6 +34,7 @@ PRECEDENCE = {
     "?": 3,
     "=": 1,
 }
+SPECIFIER = ["int", "static", "extern"]
 
 
 class SyntaxError(Exception):
@@ -60,10 +61,10 @@ def parse(tokens):
 
 
 def parse_program(tokens):
-    function_declarations = []
+    declarations = []
     while tokens:
-        function_declarations.append(parse_declaration(tokens))
-    return asdl.ProgramAST(function_declarations)
+        declarations.append(parse_declaration(tokens))
+    return asdl.ProgramAST(declarations)
 
 
 def parse_param_list(tokens):
@@ -84,6 +85,38 @@ def parse_param_list(tokens):
     return params
 
 
+def parse_type_and_storage_class(specifiers):
+    types, storage_classes = [], []
+    for specifier in specifiers:
+        if specifier == "int":
+            types.append(specifier)
+        else:
+            storage_classes.append(specifier)
+
+    if len(types) != 1:
+        raise SyntaxError(f"Invalid type specifier: {types}")
+    if len(storage_classes) > 1:
+        raise SyntaxError(f"Invalid storage class: {storage_classes}")
+
+    type = asdl.IntType
+
+    storage_class = None
+    if len(storage_classes) == 1:
+        storage_class = parse_storage_class(storage_classes[0])
+
+    return (type, storage_class)
+
+
+def parse_storage_class(storage_class):
+    match storage_class:
+        case "static":
+            return asdl.StorageClassAST.STATIC
+        case "extern":
+            return asdl.StorageClassAST.EXTERN
+        case _:
+            raise SyntaxError(f"Unknown storage class: {storage_class}")
+
+
 def parse_block(tokens):
     expect("{", tokens)
     items = []
@@ -94,15 +127,20 @@ def parse_block(tokens):
 
 
 def parse_block_item(tokens):
-    if tokens[0] == "int":
+    if tokens[0] in SPECIFIER:
         return asdl.DAST(parse_declaration(tokens))
     return asdl.SAST(parse_statement(tokens))
 
 
 def parse_for_init(tokens):
-    if tokens[0] == "int":
+    if tokens[0] in SPECIFIER:
         decl = parse_declaration(tokens)
-        if not isinstance(decl, asdl.VariableDeclaration):
+        if isinstance(decl, asdl.VariableDeclaration):
+            if decl.storage_class:
+                raise SyntaxError(
+                    f"Storage class specified for '{decl.name}' in for loop"
+                )
+        else:
             raise SyntaxError(f"Unexpected declaration: {decl}")
         return asdl.InitDeclAST(decl)
     exp, token = None, ";"
@@ -113,7 +151,10 @@ def parse_for_init(tokens):
 
 
 def parse_declaration(tokens):
-    expect("int", tokens)
+    specifiers = []
+    while tokens[0] in SPECIFIER:
+        specifiers.append(take_token(tokens))
+    type_storage_class = parse_type_and_storage_class(specifiers)
     name = take_token(tokens)
     if not lexer.TOKEN_PATTERNS[lexer.Token.IDENTIFIER].match(name):
         raise SyntaxError(f"Not an identifier: {name}")
@@ -128,12 +169,12 @@ def parse_declaration(tokens):
                 take_token(tokens)
             else:
                 body = parse_block(tokens)
-            return asdl.FuncDeclAST(name, params, body)
+            return asdl.FuncDeclAST(name, params, body, type_storage_class[1])
         case "=":
             take_token(tokens)
             exp = parse_exp(tokens)
     expect(";", tokens)
-    return asdl.VarDeclAST(name, exp)
+    return asdl.VarDeclAST(name, exp, type_storage_class[1])
 
 
 def parse_statement(tokens):

@@ -186,22 +186,29 @@ class DAST(BlockItem):
     declaration: FunctionDeclaration | VariableDeclaration
 
 
+class StorageClassAST(Enum):
+    STATIC = auto()
+    EXTERN = auto()
+
+
 @dataclass
 class FuncDeclAST(FunctionDeclaration):
     name: str
     params: list[str]
     body: Block | None
+    storage_class: StorageClassAST | None
 
 
 @dataclass
 class VarDeclAST(VariableDeclaration):
     name: str
     init: Exp | None
+    storage_class: StorageClassAST | None
 
 
 @dataclass
 class ProgramAST(Program):
-    function_declarations: list[FunctionDeclaration]
+    declarations: list[FunctionDeclaration | VariableDeclaration]
 
 
 # -------------------------------------------------------------------------------
