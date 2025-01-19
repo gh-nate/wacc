@@ -25,6 +25,8 @@ Exp = type("Exp", _bases, _dict)
 ForInit = type("ForInit", _bases, _dict)
 FunctionDeclaration = type("FunctionDeclaration", _bases, _dict)
 FunctionDefinition = type("FunctionDefinition", _bases, _dict)
+IdentifierAttrs = type("IdentifierAttrs", _bases, _dict)
+InitialValue = type("InitialValue", _bases, _dict)
 Instruction = type("Instruction", _bases, _dict)
 Operand = type("Operand", _bases, _dict)
 Program = type("Program", _bases, _dict)
@@ -222,6 +224,41 @@ class IntType(Type):
 @dataclass
 class FunType(Type):
     param_count: int
+
+
+# -------------------------------------------------------------------------------
+
+
+class TentativeTC(InitialValue):
+    def __eq__(self, o):
+        return isinstance(o, TentativeTC)
+
+
+@dataclass
+class InitialTC(InitialValue):
+    int: int
+
+
+class NoInitializerTC(InitialValue):
+    def __eq__(self, o):
+        return isinstance(o, NoInitializerTC)
+
+
+@dataclass
+class FunAttrTC(IdentifierAttrs):
+    defined: bool
+    globl: bool
+
+
+@dataclass
+class StaticAttrTC(IdentifierAttrs):
+    init: InitialValue
+    globl: bool
+
+
+class LocalAttrTC(IdentifierAttrs):
+    def __eq__(self, o):
+        return isinstance(o, LocalAttrTC)
 
 
 # -------------------------------------------------------------------------------

@@ -42,16 +42,16 @@ class TypeCheckError(Exception):
 
 
 def analyze(tree):
-    function_declarations = tree.function_declarations
-    identifier_resolution(function_declarations)
-    type_check(function_declarations, {})
-    loop_label(function_declarations)
+    declarations = tree.declarations
+    identifier_resolution(declarations)
+    type_check(declarations, {})
+    loop_label(declarations)
 
 
-def identifier_resolution(function_declarations):
+def identifier_resolution(declarations):
     identifier_map = {}
-    for function_declaration in function_declarations:
-        resolve_function_declaration(function_declaration, identifier_map)
+    for declaration in declarations:
+        resolve_declaration(declaration, identifier_map)
 
 
 def resolve_block(block, identifier_map):
@@ -64,13 +64,13 @@ def resolve_block_item(block_item, identifier_map):
         case asdl.SAST(statement):
             resolve_statement(statement, identifier_map)
         case asdl.DAST(declaration):
-            resolve_declaration(declaration, identifier_map)
+            resolve_declaration(declaration, identifier_map, True)
 
 
 def resolve_for_init(init, identifier_map):
     match init:
         case asdl.InitDeclAST(d):
-            resolve_declaration(d, identifier_map)
+            resolve_declaration(d, identifier_map, True)
         case asdl.InitExpAST(e):
             resolve_exp(e, identifier_map)
 
@@ -82,28 +82,42 @@ class MapEntry:
     has_linkage: bool
 
 
-def resolve_declaration(declaration, identifier_map):
+def resolve_declaration(declaration, identifier_map, is_block_scope=False):
     match declaration:
         case asdl.FuncDeclAST(name, _, body):
-            if body:
+            if body and is_block_scope:
                 raise ResolutionError(f"Local '{name}' function declaration with body")
             resolve_function_declaration(declaration, identifier_map)
         case asdl.VarDeclAST():
-            resolve_variable_declaration(declaration, identifier_map)
+            if is_block_scope:
+                resolve_local_variable_declaration(declaration, identifier_map)
+            else:
+                resolve_file_scope_variable_declaration(declaration, identifier_map)
 
 
-def resolve_variable_declaration(declaration, identifier_map):
-    g, name, init = None, declaration.name, declaration.init
+def resolve_file_scope_variable_declaration(declaration, identifier_map):
+    name = declaration.name
+    identifier_map[name] = MapEntry(name, True, True), None
+
+
+def resolve_local_variable_declaration(declaration, identifier_map):
+    g, name = None, declaration.name
     if name in identifier_map.keys():
-        v = identifier_map[name]
-        if v[0].from_current_scope:
-            raise ResolutionError(f"Duplicate identifier declaration for {name}!")
-        g = v[1]
-    if not g:
-        g = _mk_tmp(name + ".")
-    declaration.name = make_temporary(g)
-    identifier_map[name] = MapEntry(declaration.name, True, False), g
-    resolve_exp(init, identifier_map)
+        prev_entry, g = identifier_map[name]
+        if prev_entry.from_current_scope:
+            if not (
+                prev_entry.has_linkage
+                and declaration.storage_class == asdl.StorageClassAST.EXTERN
+            ):
+                raise ResolutionError(f"Conflicting local declarations for {name}")
+    if declaration.storage_class == asdl.StorageClassAST.EXTERN:
+        identifier_map[name] = MapEntry(name, True, True), g
+    else:
+        if not g:
+            g = _mk_tmp(name + ".")
+        declaration.name = make_temporary(g)
+        identifier_map[name] = MapEntry(declaration.name, True, False), g
+        resolve_exp(declaration.init, identifier_map)
 
 
 def resolve_function_declaration(decl, identifier_map):
@@ -200,21 +214,94 @@ def copy_identifier_map(identifier_map):
     return new_identifier_map
 
 
-def type_check(function_declarations, symbols):
-    for function_declaration in function_declarations:
-        type_check_function_declaration(function_declaration, symbols)
+def type_check(declarations, symbols):
+    for declaration in declarations:
+        match declaration:
+            case asdl.FuncDeclAST():
+                type_check_function_declaration(declaration, symbols)
+            case asdl.VarDeclAST():
+                type_check_file_scope_variable_declaration(declaration, symbols)
 
 
 @dataclass
 class SymbolEntry:
     type: asdl.Type
-    defined: bool | None
+    attrs: asdl.IdentifierAttrs | None
 
 
-def type_check_variable_declaration(decl, symbols):
-    symbols[decl.name] = SymbolEntry(asdl.IntType, None)
-    if init := decl.init:
-        type_check_exp(init, symbols)
+def type_check_file_scope_variable_declaration(decl, symbols):
+    match decl.init:
+        case asdl.ConstantAST(i):
+            initial_value = asdl.InitialTC(i)
+        case None:
+            if decl.storage_class == asdl.StorageClassAST.EXTERN:
+                initial_value = asdl.NoInitializerTC()
+            else:
+                initial_value = asdl.TentativeTC()
+        case _:
+            raise TypeCheckError(f"Non-constant initializer for '{decl.name}'")
+
+    globl = decl.storage_class != asdl.StorageClassAST.STATIC
+
+    name = decl.name
+    if name in symbols.keys():
+        old_decl = symbols[name]
+        if old_decl.type != asdl.IntType:
+            raise TypeCheckError(f"Function '{name}' redeclared as variable")
+        if decl.storage_class == asdl.StorageClassAST.EXTERN:
+            globl = old_decl.attrs.globl
+        elif old_decl.attrs.globl != globl:
+            raise TypeCheckError(f"Conflicting variable linkage for '{name}'")
+
+        if isinstance(old_decl.attrs.init, asdl.InitialTC):
+            if isinstance(initial_value, asdl.InitialTC):
+                raise TypeCheckError(
+                    f"Conflicting file scope variable declarations '{name}'"
+                )
+            else:
+                initial_value = old_decl.attrs.init
+        elif not isinstance(initial_value, asdl.InitialTC) and isinstance(
+            old_decl.attrs.init, asdl.TentativeTC
+        ):
+            initial_value = asdl.TentativeTC()
+    symbols[name] = SymbolEntry(asdl.IntType, asdl.StaticAttrTC(initial_value, globl))
+
+
+def type_check_local_variable_declaration(decl, symbols):
+    name = decl.name
+    match decl.storage_class:
+        case asdl.StorageClassAST.EXTERN:
+            if decl.init:
+                raise TypeCheckError(
+                    f"Initializer on local extern variable declaration for '{name}'"
+                )
+            if name in symbols.keys():
+                old_decl = symbols[name]
+                if old_decl.type != asdl.IntType:
+                    raise TypeCheckError(
+                        f"Function redeclared as variable for '{name}'"
+                    )
+            else:
+                symbols[name] = SymbolEntry(
+                    asdl.IntType, asdl.StaticAttrTC(asdl.NoInitializerTC, True)
+                )
+        case asdl.StorageClassAST.STATIC:
+            match decl.init:
+                case asdl.ConstantAST(i):
+                    initial_value = asdl.InitialTC(i)
+                case None:
+                    initial_value = asdl.InitialTC(0)
+                case _:
+                    raise TypeCheckError(
+                        f"Non-constant initializer on local static variable '{name}'"
+                    )
+            symbols[name] = SymbolEntry(
+                asdl.IntType, asdl.StaticAttrTC(initial_value, False)
+            )
+        case _:
+            symbols[name] = SymbolEntry(asdl.IntType, asdl.LocalAttrTC())
+            if init := decl.init:
+                type_check_exp(init, symbols)
 
 
 def type_check_function_declaration(decl, symbols):
@@ -223,6 +310,7 @@ def type_check_function_declaration(decl, symbols):
     body = decl.body
     has_body = body is not None
     already_defined = False
+    globl = decl.storage_class != asdl.StorageClassAST.STATIC
 
     name = decl.name
     if name in symbols.keys():
@@ -231,11 +319,20 @@ def type_check_function_declaration(decl, symbols):
             raise TypeCheckError(
                 f"Incompatible function declarations: {old_decl.type} v.s. {fun_type}"
             )
-        already_defined = old_decl.defined
+        already_defined = old_decl.attrs.defined
         if already_defined and has_body:
             raise TypeCheckError(f"Function '{name}' is defined more than once")
 
-    symbols[name] = SymbolEntry(fun_type, already_defined or has_body)
+        if old_decl.attrs.globl and decl.storage_class == asdl.StorageClassAST.STATIC:
+            raise TypeCheckError(
+                f"Static function declaration follows non-static for '{name}'"
+            )
+        globl = old_decl.attrs.globl
+
+    symbols[name] = SymbolEntry(
+        fun_type,
+        asdl.FunAttrTC(already_defined or has_body, globl),
+    )
 
     if has_body:
         for param in params:
@@ -249,10 +346,14 @@ def type_check_block_item(block_item, symbols):
             type_check_statement(statement, symbols)
         case asdl.DAST(declaration):
             match declaration:
-                case asdl.FuncDeclAST():
+                case asdl.FuncDeclAST(name, _, _, storage_class):
+                    if storage_class and storage_class == asdl.StorageClassAST.STATIC:
+                        raise TypeCheckError(
+                            f"Cannot declare '{name}' block-scope function declaration with `static`"
+                        )
                     type_check_function_declaration(declaration, symbols)
                 case asdl.VarDeclAST():
-                    type_check_variable_declaration(declaration, symbols)
+                    type_check_local_variable_declaration(declaration, symbols)
 
 
 def type_check_block(block, symbols):
@@ -263,7 +364,11 @@ def type_check_block(block, symbols):
 def type_check_for_init(i, symbols):
     match i:
         case asdl.InitDeclAST(var_decl):
-            type_check_variable_declaration(var_decl, symbols)
+            if var_decl.storage_class:
+                raise TypeCheckError(
+                    "Forbidden storage-class specifier for '{var_decl.name}'"
+                )
+            type_check_local_variable_declaration(var_decl, symbols)
         case asdl.InitExpAST(e):
             type_check_exp(e, symbols)
 
@@ -314,10 +419,11 @@ def type_check_exp(e, symbols):
                 raise TypeCheckError(f"Function name {v} used a variable")
 
 
-def loop_label(function_declarations):
+def loop_label(declarations):
     g = {label: _mk_tmp(label) for label in ["w", "d", "f"]}
-    for function_declaration in function_declarations:
-        label_func_decl(g, function_declaration)
+    for declaration in declarations:
+        if isinstance(declaration, asdl.FuncDeclAST):
+            label_func_decl(g, declaration)
 
 
 def label_func_decl(g, function_declaration):
