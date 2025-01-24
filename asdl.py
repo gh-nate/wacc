@@ -420,6 +420,11 @@ class StackASM(Operand):
     int: int
 
 
+@dataclass
+class DataASM(Operand):
+    identifier: str
+
+
 class BinaryOperatorASM(Enum):
     ADD = "addl"
     SUB = "subl"
@@ -508,11 +513,19 @@ class RetASM(Instruction):
 
 
 @dataclass
-class FunctionASM(FunctionDefinition):
+class FunctionASM(TopLevel):
     name: str
+    globl: bool
     instructions: list[Instruction]
 
 
 @dataclass
+class StaticVariableASM(TopLevel):
+    name: str
+    globl: bool
+    init: int
+
+
+@dataclass
 class ProgramASM(Program):
-    function_definitions: list[FunctionDefinition]
+    top_level: list[TopLevel]
