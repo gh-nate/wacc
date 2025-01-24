@@ -41,10 +41,10 @@ class TypeCheckError(Exception):
     pass
 
 
-def analyze(tree):
+def analyze(tree, symbols):
     declarations = tree.declarations
     identifier_resolution(declarations)
-    type_check(declarations, {})
+    type_check(declarations, symbols)
     loop_label(declarations)
 
 

@@ -50,25 +50,26 @@ class G:
         return next(self.e2)
 
 
-def convert(tree):
-    return convert_program(tree)
+def convert(tree, symbols):
+    return convert_program(tree, symbols)
 
 
-def convert_program(tree):
-    function_definitions, g = [], G()
-    for function_declaration in tree.function_declarations:
-        if function_declaration.body:
-            function_definitions.append(
-                convert_function_declaration(g, function_declaration)
-            )
-    return asdl.ProgramTACKY(function_definitions)
+def convert_program(tree, symbols):
+    top_level, g = [], G()
+    for declaration in tree.declarations:
+        if isinstance(declaration, asdl.FuncDeclAST) and declaration.body:
+            top_level.append(convert_function_declaration(g, declaration, symbols))
+    return asdl.ProgramTACKY(top_level + convert_symbols_to_tacky(symbols))
 
 
-def convert_function_declaration(g, node):
+def convert_function_declaration(g, node, symbols):
     instructions = []
     convert_block(g, node.body, instructions)
     instructions.append(asdl.ReturnTACKY(asdl.ConstantTACKY(0)))
-    return asdl.FunctionTACKY(node.name, node.params, instructions)
+    name = node.name
+    return asdl.FunctionTACKY(
+        name, symbols[name].attrs.globl, node.params, instructions
+    )
 
 
 def convert_block(g, block, instructions):
@@ -285,3 +286,16 @@ def emit_tacky(g, exp, instructions):
                 )
             )
             return dst
+
+
+def convert_symbols_to_tacky(symbols):
+    tacky_defs = []
+    for name, entry in symbols.items():
+        match entry.attrs:
+            case asdl.StaticAttrTC(init, globl):
+                match init:
+                    case asdl.InitialTC(i):
+                        tacky_defs.append(asdl.StaticVariableTACKY(name, globl, i))
+                    case asdl.TentativeTC():
+                        tacky_defs.append(asdl.StaticVariableTACKY(name, globl, 0))
+    return tacky_defs

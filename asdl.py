@@ -31,6 +31,7 @@ Instruction = type("Instruction", _bases, _dict)
 Operand = type("Operand", _bases, _dict)
 Program = type("Program", _bases, _dict)
 Statement = type("Statement", _bases, _dict)
+TopLevel = type("TopLevel", _bases, _dict)
 Type = type("Type", _bases, _dict)
 Val = type("Val", _bases, _dict)
 VariableDeclaration = type("VariableDeclaration", _bases, _dict)
@@ -350,15 +351,23 @@ class FunCallTACKY(Instruction):
 
 
 @dataclass
-class FunctionTACKY(FunctionDefinition):
+class FunctionTACKY(TopLevel):
     identifier: str
+    globl: bool
     params: list[str]
     body: list[Instruction]
 
 
 @dataclass
+class StaticVariableTACKY(TopLevel):
+    identifier: str
+    globl: bool
+    init: int
+
+
+@dataclass
 class ProgramTACKY(Program):
-    function_definitions: list[FunctionDefinition]
+    top_level: list[TopLevel]
 
 
 # -------------------------------------------------------------------------------
