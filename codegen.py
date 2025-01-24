@@ -26,21 +26,29 @@ ARG_REGISTERS = [
 NUM_ARGS_IN_REGISTERS = len(ARG_REGISTERS)
 
 
-def convert(tree):
+def convert(tree, symbols):
     tree = convert_program(tree)
-    for function_definition in tree.function_definitions:
-        stack_offset = replace_pseudoregisters(function_definition.instructions)
-        fix_instructions(function_definition.instructions, stack_offset)
+    for item in tree.top_level:
+        match item:
+            case asdl.FunctionASM(_, _, instructions):
+                stack_offset = replace_pseudoregisters(instructions, symbols)
+                fix_instructions(instructions, stack_offset)
     return tree
 
 
 def convert_program(tree):
-    return asdl.ProgramASM(
-        [
-            convert_function_definition(function_definition)
-            for function_definition in tree.function_definitions
-        ]
-    )
+    return asdl.ProgramASM(convert_top_level(tree.top_level))
+
+
+def convert_top_level(top_level):
+    items = []
+    for item in top_level:
+        match item:
+            case asdl.FunctionTACKY():
+                items.append(convert_function_definition(item))
+            case asdl.StaticVariableTACKY():
+                items.append(convert_static_variable(item))
+    return items
 
 
 def convert_function_definition(node):
@@ -56,8 +64,12 @@ def convert_function_definition(node):
         )
         stack_offset += 8
     return asdl.FunctionASM(
-        node.identifier, instructions + convert_instructions(node.body)
+        node.identifier, node.globl, instructions + convert_instructions(node.body)
     )
+
+
+def convert_static_variable(node):
+    return asdl.StaticVariableASM(node.identifier, node.globl, node.init)
 
 
 def convert_function_call(fc):
@@ -229,9 +241,13 @@ def convert_arithmetic_operator(operator):
             return asdl.BinaryOperatorASM.MULT
 
 
-def replace_pseudoregisters(instructions):
+def replace_pseudoregisters(instructions, symbols):
     def replace(identifier):
         if identifier not in identifiers_offsets:
+            if identifier in symbols and isinstance(
+                symbols[identifier].attrs, asdl.StaticAttrTC
+            ):
+                return asdl.DataASM(identifier)
             nonlocal stack_offset
             stack_offset -= 4
             identifiers_offsets[identifier] = stack_offset
@@ -272,15 +288,29 @@ def fix_instructions(instructions, stack_offset):
     while index < len(instructions):
         offset = 1
         match instructions[index]:
-            case asdl.MovASM(asdl.StackASM(_), asdl.StackASM(y)):
+            case asdl.MovASM(asdl.StackASM(), asdl.StackASM(y)) | asdl.MovASM(
+                asdl.DataASM(), asdl.StackASM(y)
+            ):
                 instructions[index].dst = r10
                 instructions.insert(index + offset, asdl.MovASM(r10, asdl.StackASM(y)))
                 offset += 1
-            case asdl.BinaryASM(op, o, asdl.StackASM(i)):
-                dst = asdl.StackASM(i)
+            case asdl.MovASM(asdl.StackASM(), asdl.DataASM(y)) | asdl.MovASM(
+                asdl.DataASM(), asdl.DataASM(y)
+            ):
+                instructions[index].dst = r10
+                instructions.insert(index + offset, asdl.MovASM(r10, asdl.DataASM(y)))
+                offset += 1
+            case asdl.BinaryASM(op, o, asdl.StackASM(i)) | asdl.BinaryASM(
+                op, o, asdl.DataASM(i)
+            ):
+                match i:
+                    case int():
+                        dst = asdl.StackASM(i)
+                    case str():
+                        dst = asdl.DataASM(i)
                 match op:
                     case asdl.BinaryOperatorASM.ADD | asdl.BinaryOperatorASM.SUB if (
-                        isinstance(o, asdl.StackASM)
+                        isinstance(o, asdl.StackASM) or isinstance(o, asdl.DataASM)
                     ):
                         instructions[index] = asdl.MovASM(o, r10)
                         instructions.insert(
@@ -295,18 +325,30 @@ def fix_instructions(instructions, stack_offset):
                         offset += 1
             case asdl.CmpASM(x, y):
                 match x, y:
-                    case asdl.StackASM(_), asdl.StackASM(v):
+                    case (asdl.StackASM(), asdl.StackASM(v)) | (
+                        asdl.DataASM(),
+                        asdl.StackASM(v),
+                    ):
                         instructions[index] = asdl.MovASM(x, r10)
                         instructions.insert(
                             index + offset, asdl.CmpASM(r10, asdl.StackASM(v))
+                        )
+                        offset += 1
+                    case (asdl.StackASM(), asdl.DataASM(v)) | (
+                        asdl.DataASM(),
+                        asdl.DataASM(v),
+                    ):
+                        instructions[index] = asdl.MovASM(x, r10)
+                        instructions.insert(
+                            index + offset, asdl.CmpASM(r10, asdl.DataASM(v))
                         )
                         offset += 1
                     case _, asdl.ImmASM(y):
                         instructions[index] = asdl.MovASM(asdl.ImmASM(y), r11)
                         instructions.insert(index + offset, asdl.CmpASM(x, r11))
                         offset += 1
-            case asdl.IdivASM(asdl.ImmASM(int)):
-                instructions[index] = asdl.MovASM(asdl.ImmASM(int), r10)
+            case asdl.IdivASM(asdl.ImmASM(i)):
+                instructions[index] = asdl.MovASM(asdl.ImmASM(i), r10)
                 instructions.insert(index + offset, asdl.IdivASM(r10))
                 offset += 1
         index += offset

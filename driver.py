@@ -88,7 +88,7 @@ tree = tacky.convert(tree, symbols)
 if arguments.tacky:
     sys.exit()
 
-tree = codegen.convert(tree)
+tree = codegen.convert(tree, symbols)
 if arguments.codegen:
     sys.exit()
 
