@@ -79,11 +79,12 @@ tree = parser.parse(tokens)
 if arguments.parse:
     sys.exit()
 
-semantic_analysis.analyze(tree)
+symbols = {}
+semantic_analysis.analyze(tree, symbols)
 if arguments.validate:
     sys.exit()
 
-tree = tacky.convert(tree)
+tree = tacky.convert(tree, symbols)
 if arguments.tacky:
     sys.exit()
 

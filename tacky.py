@@ -50,42 +50,49 @@ class G:
         return next(self.e2)
 
 
-def convert(tree):
-    return convert_program(tree)
+def convert(tree, symbols):
+    return convert_program(tree, symbols)
 
 
-def convert_program(tree):
-    function_definitions, g = [], G()
-    for function_declaration in tree.function_declarations:
-        if function_declaration.body:
-            function_definitions.append(
-                convert_function_declaration(g, function_declaration)
-            )
-    return asdl.ProgramTACKY(function_definitions)
+def convert_program(tree, symbols):
+    top_level, g = [], G()
+    for declaration in tree.declarations:
+        if isinstance(declaration, asdl.FuncDeclAST) and declaration.body:
+            convert_function_declaration(g, declaration, symbols, top_level)
+    return asdl.ProgramTACKY(top_level + convert_symbols_to_tacky(symbols))
 
 
-def convert_function_declaration(g, node):
+def convert_function_declaration(g, node, symbols, top_level):
     instructions = []
-    convert_block(g, node.body, instructions)
+    convert_block(g, node.body, instructions, top_level)
     instructions.append(asdl.ReturnTACKY(asdl.ConstantTACKY(0)))
-    return asdl.FunctionTACKY(node.name, node.params, instructions)
+    name = node.name
+    top_level.append(
+        asdl.FunctionTACKY(name, symbols[name].attrs.globl, node.params, instructions)
+    )
 
 
-def convert_block(g, block, instructions):
+def convert_block(g, block, instructions, top_level):
     for block_item in block.items:
-        if r := convert_block_item(g, block_item):
+        if r := convert_block_item(g, block_item, top_level):
             instructions.extend(r)
 
 
-def convert_block_item(g, node):
+def convert_block_item(g, node, top_level):
     match node:
         case asdl.SAST(statement):
-            return convert_statement(g, statement)
+            return convert_statement(g, statement, top_level)
         case asdl.DAST(asdl.VarDeclAST()):
-            return convert_variable_declaration(g, node.declaration)
+            instructions, is_top_level = convert_variable_declaration(
+                g, node.declaration
+            )
+            if is_top_level:
+                top_level.extend(instructions)
+                instructions.clear()
+            return instructions
 
 
-def convert_statement(g, node):
+def convert_statement(g, node, top_level):
     break_prefix, continue_prefix = "break_", "continue_"
     instructions = []
     match node:
@@ -102,16 +109,16 @@ def convert_statement(g, node):
             instructions.append(
                 asdl.JumpIfZeroTACKY(c, else_label if else_ else end_label)
             )
-            instructions.extend(convert_statement(g, then))
+            instructions.extend(convert_statement(g, then, top_level))
             if else_:
                 instructions += [
                     asdl.JumpTACKY(end_label),
                     asdl.LabelTACKY(else_label),
                 ]
-                instructions.extend(convert_statement(g, else_))
+                instructions.extend(convert_statement(g, else_, top_level))
             instructions.append(asdl.LabelTACKY(end_label))
         case asdl.CompoundAST(block):
-            convert_block(g, block, instructions)
+            convert_block(g, block, instructions, top_level)
         case asdl.BreakAST(label):
             instructions.append(asdl.JumpTACKY(break_prefix + label))
         case asdl.ContinueAST(label):
@@ -122,14 +129,14 @@ def convert_statement(g, node):
             c = emit_tacky(g, condition, instructions)
             break_label = break_prefix + label
             instructions.append(asdl.JumpIfZeroTACKY(c, break_label))
-            instructions.extend(convert_statement(g, body))
+            instructions.extend(convert_statement(g, body, top_level))
             instructions += [
                 asdl.JumpTACKY(continue_label),
                 asdl.LabelTACKY(break_label),
             ]
         case asdl.DoWhileAST(body, condition, label):
             instructions.append(asdl.LabelTACKY(label))
-            instructions.extend(convert_statement(g, body))
+            instructions.extend(convert_statement(g, body, top_level))
             instructions.append(asdl.LabelTACKY(continue_prefix + label))
             c = emit_tacky(g, condition, instructions)
             instructions += [
@@ -139,7 +146,11 @@ def convert_statement(g, node):
         case asdl.ForAST(init, condition, post, body, label):
             match init:
                 case asdl.InitDeclAST(d):
-                    instructions.extend(convert_variable_declaration(g, d))
+                    items, is_top_level = convert_variable_declaration(g, d)
+                    if is_top_level:
+                        top_level.extend(items)
+                    else:
+                        instructions.extend(items)
                 case asdl.InitExpAST(e):
                     emit_tacky(g, e, instructions)
             instructions.append(asdl.LabelTACKY(label))
@@ -147,7 +158,7 @@ def convert_statement(g, node):
             if condition:
                 c = emit_tacky(g, condition, instructions)
                 instructions.append(asdl.JumpIfZeroTACKY(c, break_label))
-            instructions.extend(convert_statement(g, body))
+            instructions.extend(convert_statement(g, body, top_level))
             continue_label = continue_prefix + label
             instructions.append(asdl.LabelTACKY(continue_label))
             emit_tacky(g, post, instructions)
@@ -163,7 +174,11 @@ def convert_variable_declaration(g, node):
     if init := node.init:
         v = emit_tacky(g, init, instructions)
         instructions.append(asdl.CopyTACKY(v, asdl.VarTACKY(node.name)))
-    return instructions
+    if (
+        storage_class := node.storage_class
+    ) and storage_class == asdl.StorageClassAST.STATIC:
+        return instructions, True
+    return instructions, False
 
 
 def convert_unop(unop):
@@ -285,3 +300,16 @@ def emit_tacky(g, exp, instructions):
                 )
             )
             return dst
+
+
+def convert_symbols_to_tacky(symbols):
+    tacky_defs = []
+    for name, entry in symbols.items():
+        match entry.attrs:
+            case asdl.StaticAttrTC(init, globl):
+                match init:
+                    case asdl.InitialTC(i):
+                        tacky_defs.append(asdl.StaticVariableTACKY(name, globl, i))
+                    case asdl.TentativeTC():
+                        tacky_defs.append(asdl.StaticVariableTACKY(name, globl, 0))
+    return tacky_defs
