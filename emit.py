@@ -32,24 +32,58 @@ def output(tree):
 
 
 def output_program(tree, s):
-    for function_definition in tree.function_definitions:
-        output_function(function_definition, s)
+    output_top_level(tree.top_level, s)
+
+
+def output_top_level(items, s):
+    for item in items:
+        match item:
+            case asdl.FunctionASM():
+                output_function(item, s)
+            case asdl.StaticVariableASM():
+                output_static_variable(item, s)
+
+
+def output_name(node, s):
+    if IS_LINUX:
+        s.write(node.name)
+    elif IS_MACOS:
+        s.write("_" + node.name)
+
+
+def output_global_directive(node, s):
+    if node.globl:
+        s.write("\t.globl ")
+        output_name(node, s)
+        s.write("\n")
 
 
 def output_function(node, s):
-    if IS_LINUX:
-        name = node.name
-    elif IS_MACOS:
-        name = "_" + node.name
+    output_global_directive(node, s)
+    print("\t.text", file=s)
+    output_name(node, s)
     print(
-        f"""\
-\t.globl {name}
-{name}:
+        """:
 \tpushq %rbp
 \tmovq %rsp, %rbp""",
         file=s,
     )
     output_instructions(node.instructions, s)
+
+
+def output_static_variable(node, s):
+    output_global_directive(node, s)
+    if node.init:
+        print("\t.data", file=s)
+    else:
+        print("\t.bss", file=s)
+    print("\t.balign 4", file=s)
+    output_name(node, s)
+    print(":", file=s)
+    if node.init:
+        print(f"\t.long {node.init}", file=s)
+    else:
+        print("\t.zero 4", file=s)
 
 
 def output_instructions(instructions, s):
@@ -166,6 +200,10 @@ def output_operand(node, s, nbytes=4):
             s.write({8: "%r11", 4: "%r11d", 1: "%r11b"}[nbytes])
         case asdl.StackASM(int):
             s.write(f"{int}(%rbp)")
+        case asdl.DataASM(identifier):
+            if IS_MACOS:
+                s.write("_")
+            s.write(f"{identifier}(%rip)")
 
 
 def output_label(label, s):
