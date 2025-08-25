@@ -15,14 +15,14 @@
 
 import asdl
 
-ARG_REGISTERS = [
+ARG_REGISTERS = (
     asdl.RegASM.DI,
     asdl.RegASM.SI,
     asdl.RegASM.DX,
     asdl.RegASM.CX,
     asdl.RegASM.R8,
     asdl.RegASM.R9,
-]
+)
 NUM_ARGS_IN_REGISTERS = len(ARG_REGISTERS)
 
 
@@ -97,10 +97,10 @@ def convert_function_call(fc):
         if isinstance(assembly_arg, asdl.ImmASM):
             instructions.append(asdl.PushASM(assembly_arg))
         else:
-            instructions += [
+            instructions += (
                 asdl.MovASM(assembly_arg, rax),
                 asdl.PushASM(rax),
-            ]
+            )
 
     instructions.append(asdl.CallASM(fc.fun_name))
 
@@ -123,24 +123,23 @@ def convert_instructions(tacky_instructions):
 def convert_instruction(tacky_instruction):
     match tacky_instruction:
         case asdl.ReturnTACKY(val):
-            return [
+            return (
                 asdl.MovASM(convert_val(val), asdl.RegisterASM(asdl.RegASM.AX)),
                 asdl.RetASM(),
-            ]
+            )
         case asdl.UnaryTACKY(unop, src, dst):
             src, dst = convert_val(src), convert_val(dst)
             if unop == asdl.UnaryOperatorTACKY.NOT:
                 imm_0 = asdl.ImmASM(0)
-                return [
+                return (
                     asdl.CmpASM(imm_0, src),
                     asdl.MovASM(imm_0, dst),
                     asdl.SetCcASM(asdl.CondCodeASM.E, dst),
-                ]
-            else:
-                return [
-                    asdl.MovASM(src, dst),
-                    asdl.UnaryASM(convert_arithmetic_operator(unop), dst),
-                ]
+                )
+            return (
+                asdl.MovASM(src, dst),
+                asdl.UnaryASM(convert_arithmetic_operator(unop), dst),
+            )
         case asdl.BinaryTACKY(binop, src1, src2, dst):
             src1, src2, dst = (
                 convert_val(src1),
@@ -150,19 +149,19 @@ def convert_instruction(tacky_instruction):
             match binop:
                 case asdl.BinaryOperatorTACKY.DIVIDE:
                     ax = asdl.RegisterASM(asdl.RegASM.AX)
-                    return [
+                    return (
                         asdl.MovASM(src1, ax),
                         asdl.CdqASM(),
                         asdl.IdivASM(src2),
                         asdl.MovASM(ax, dst),
-                    ]
+                    )
                 case asdl.BinaryOperatorTACKY.REMAINDER:
-                    return [
+                    return (
                         asdl.MovASM(src1, asdl.RegisterASM(asdl.RegASM.AX)),
                         asdl.CdqASM(),
                         asdl.IdivASM(src2),
                         asdl.MovASM(asdl.RegisterASM(asdl.RegASM.DX), dst),
-                    ]
+                    )
                 case (
                     asdl.BinaryOperatorTACKY.EQUAL
                     | asdl.BinaryOperatorTACKY.NOT_EQUAL
@@ -171,32 +170,32 @@ def convert_instruction(tacky_instruction):
                     | asdl.BinaryOperatorTACKY.GREATER_THAN
                     | asdl.BinaryOperatorTACKY.GREATER_OR_EQUAL
                 ):
-                    return [
+                    return (
                         asdl.CmpASM(src2, src1),
                         asdl.MovASM(asdl.ImmASM(0), dst),
                         asdl.SetCcASM(convert_relational_operator(binop), dst),
-                    ]
+                    )
                 case _:
-                    return [
+                    return (
                         asdl.MovASM(src1, dst),
                         asdl.BinaryASM(convert_arithmetic_operator(binop), src2, dst),
-                    ]
+                    )
         case asdl.CopyTACKY(src, dst):
-            return [asdl.MovASM(convert_val(src), convert_val(dst))]
+            return (asdl.MovASM(convert_val(src), convert_val(dst)),)
         case asdl.JumpTACKY(target):
-            return [asdl.JmpASM(target)]
+            return (asdl.JmpASM(target),)
         case asdl.JumpIfZeroTACKY(condition, target):
-            return [
+            return (
                 asdl.CmpASM(asdl.ImmASM(0), convert_val(condition)),
                 asdl.JmpCcASM(asdl.CondCodeASM.E, target),
-            ]
+            )
         case asdl.JumpIfNotZeroTACKY(condition, target):
-            return [
+            return (
                 asdl.CmpASM(asdl.ImmASM(0), convert_val(condition)),
                 asdl.JmpCcASM(asdl.CondCodeASM.NE, target),
-            ]
+            )
         case asdl.LabelTACKY(identifier):
-            return [asdl.LabelASM(identifier)]
+            return (asdl.LabelASM(identifier),)
         case asdl.FunCallTACKY():
             return convert_function_call(tacky_instruction)
 
@@ -310,7 +309,7 @@ def fix_instructions(instructions, stack_offset):
                         dst = asdl.DataASM(i)
                 match op:
                     case asdl.BinaryOperatorASM.ADD | asdl.BinaryOperatorASM.SUB if (
-                        isinstance(o, asdl.StackASM) or isinstance(o, asdl.DataASM)
+                        isinstance(o, (asdl.StackASM, asdl.DataASM))
                     ):
                         instructions[index] = asdl.MovASM(o, r10)
                         instructions.insert(

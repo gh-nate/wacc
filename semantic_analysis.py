@@ -29,16 +29,13 @@ make_temporary = next
 make_label = make_temporary
 
 
-class ResolutionError(Exception):
-    pass
+class ResolutionError(Exception): ...
 
 
-class LoopLabellingError(Exception):
-    pass
+class LoopLabellingError(Exception): ...
 
 
-class TypeCheckError(Exception):
-    pass
+class TypeCheckError(Exception): ...
 
 
 def analyze(tree, symbols):
@@ -252,8 +249,7 @@ def type_check_file_scope_variable_declaration(decl, symbols):
                 raise TypeCheckError(
                     f"Conflicting file scope variable declarations '{name}'"
                 )
-            else:
-                initial_value = old_decl.attrs.init
+            initial_value = old_decl.attrs.init
         elif not isinstance(initial_value, asdl.InitialTC) and isinstance(
             old_decl.attrs.init, asdl.TentativeTC
         ):
@@ -414,7 +410,7 @@ def type_check_exp(e, symbols):
 
 
 def loop_label(declarations):
-    g = {label: _mk_tmp(label) for label in ["w", "d", "f"]}
+    g = {label: _mk_tmp(label) for label in ("w", "d", "f")}
     for declaration in declarations:
         if isinstance(declaration, asdl.FuncDeclAST):
             label_func_decl(g, declaration)

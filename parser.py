@@ -34,17 +34,14 @@ PRECEDENCE = {
     "?": 3,
     "=": 1,
 }
-SPECIFIER = ["int", "static", "extern"]
+SPECIFIER = ("int", "static", "extern")
 
 
-class SyntaxError(Exception):
-    pass
+class SyntaxError(Exception): ...
 
 
 def take_token(tokens):
-    token = tokens[0]
-    del tokens[0]
-    return token
+    return tokens.pop(0)
 
 
 def expect(expected, tokens):
@@ -277,8 +274,8 @@ def parse_factor(tokens):
     if lexer.TOKEN_PATTERNS[lexer.Token.CONSTANT].match(next_token):
         take_token(tokens)
         return asdl.ConstantAST(int(next_token))
-    elif lexer.TOKEN_PATTERNS[lexer.Token.IDENTIFIER].match(next_token):
-        for keyword in [
+    if lexer.TOKEN_PATTERNS[lexer.Token.IDENTIFIER].match(next_token):
+        for keyword in (
             lexer.Token.INT_KEYWORD,
             lexer.Token.VOID_KEYWORD,
             lexer.Token.RETURN_KEYWORD,
@@ -291,7 +288,7 @@ def parse_factor(tokens):
             lexer.Token.CONTINUE_KEYWORD,
             lexer.Token.STATIC_KEYWORD,
             lexer.Token.EXTERN_KEYWORD,
-        ]:
+        ):
             if lexer.TOKEN_PATTERNS[keyword].match(next_token):
                 raise SyntaxError(f"{next_token} is a keyword and not an identifier")
         take_token(tokens)
@@ -303,12 +300,12 @@ def parse_factor(tokens):
             expect(token, tokens)
             return asdl.FunctionCallAST(next_token, args)
         return asdl.VarAST(next_token)
-    elif next_token in ["~", "-", "!"]:
+    if next_token in ("~", "-", "!"):
         return asdl.UnaryAST(
             parse_unop(tokens),
             parse_factor(tokens),
         )
-    elif next_token == "(":
+    if next_token == "(":
         take_token(tokens)
         inner_exp = parse_exp(tokens)
         expect(")", tokens)

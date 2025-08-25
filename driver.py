@@ -68,7 +68,7 @@ arguments = argument_parser.parse_args()
 input_file = Path(arguments.input_file)
 
 preprocessed_file = input_file.with_suffix(".i")
-subprocess.run(["gcc", "-E", "-P", str(input_file), "-o", str(preprocessed_file)])
+subprocess.run(("gcc", "-E", "-P", str(input_file), "-o", str(preprocessed_file)))
 with preprocessed_file.open() as f:
     tokens = lexer.tokenize(f.read())
 preprocessed_file.unlink()
@@ -98,10 +98,9 @@ with assembly_file.open("w") as f:
 if arguments.S:
     sys.exit()
 
-args = ["gcc"]
 if arguments.c:
-    args += ["-c", str(assembly_file), "-o", str(input_file.with_suffix(".o"))]
+    args = ("gcc", "-c", str(assembly_file), "-o", str(input_file.with_suffix(".o")))
 else:
-    args += [str(assembly_file), "-o", str(input_file.with_suffix(""))]
+    args = ("gcc", str(assembly_file), "-o", str(input_file.with_suffix("")))
 subprocess.run(args)
 assembly_file.unlink()

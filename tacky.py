@@ -111,10 +111,10 @@ def convert_statement(g, node, top_level):
             )
             instructions.extend(convert_statement(g, then, top_level))
             if else_:
-                instructions += [
+                instructions += (
                     asdl.JumpTACKY(end_label),
                     asdl.LabelTACKY(else_label),
-                ]
+                )
                 instructions.extend(convert_statement(g, else_, top_level))
             instructions.append(asdl.LabelTACKY(end_label))
         case asdl.CompoundAST(block):
@@ -130,19 +130,19 @@ def convert_statement(g, node, top_level):
             break_label = break_prefix + label
             instructions.append(asdl.JumpIfZeroTACKY(c, break_label))
             instructions.extend(convert_statement(g, body, top_level))
-            instructions += [
+            instructions += (
                 asdl.JumpTACKY(continue_label),
                 asdl.LabelTACKY(break_label),
-            ]
+            )
         case asdl.DoWhileAST(body, condition, label):
             instructions.append(asdl.LabelTACKY(label))
             instructions.extend(convert_statement(g, body, top_level))
             instructions.append(asdl.LabelTACKY(continue_prefix + label))
             c = emit_tacky(g, condition, instructions)
-            instructions += [
+            instructions += (
                 asdl.JumpIfNotZeroTACKY(c, label),
                 asdl.LabelTACKY(break_prefix + label),
-            ]
+            )
         case asdl.ForAST(init, condition, post, body, label):
             match init:
                 case asdl.InitDeclAST(d):
@@ -162,10 +162,10 @@ def convert_statement(g, node, top_level):
             continue_label = continue_prefix + label
             instructions.append(asdl.LabelTACKY(continue_label))
             emit_tacky(g, post, instructions)
-            instructions += [
+            instructions += (
                 asdl.JumpTACKY(label),
                 asdl.LabelTACKY(break_label),
-            ]
+            )
     return instructions
 
 
@@ -239,27 +239,27 @@ def emit_tacky(g, exp, instructions):
                     instructions.append(asdl.JumpIfZeroTACKY(v1, false_label))
                     v2 = emit_tacky(g, e2, instructions)
                     dst = asdl.VarTACKY(g.make_temp_vars())
-                    instructions += [
+                    instructions += (
                         asdl.JumpIfZeroTACKY(v2, false_label),
                         asdl.CopyTACKY(asdl.ConstantTACKY(1), dst),
                         asdl.JumpTACKY(end_label),
                         asdl.LabelTACKY(false_label),
                         asdl.CopyTACKY(asdl.ConstantTACKY(0), dst),
                         asdl.LabelTACKY(end_label),
-                    ]
+                    )
                 case asdl.BinaryOperatorAST.OR:
                     end_label, true_label = g.make_end_label(), g.make_or_true_label()
                     instructions.append(asdl.JumpIfNotZeroTACKY(v1, true_label))
                     v2 = emit_tacky(g, e2, instructions)
                     dst = asdl.VarTACKY(g.make_temp_vars())
-                    instructions += [
+                    instructions += (
                         asdl.JumpIfNotZeroTACKY(v2, true_label),
                         asdl.CopyTACKY(asdl.ConstantTACKY(0), dst),
                         asdl.JumpTACKY(end_label),
                         asdl.LabelTACKY(true_label),
                         asdl.CopyTACKY(asdl.ConstantTACKY(1), dst),
                         asdl.LabelTACKY(end_label),
-                    ]
+                    )
                 case _:
                     v2 = emit_tacky(g, e2, instructions)
                     dst = asdl.VarTACKY(g.make_temp_vars())
@@ -278,16 +278,16 @@ def emit_tacky(g, exp, instructions):
             c = emit_tacky(g, condition, instructions)
             instructions.append(asdl.JumpIfZeroTACKY(c, e2_label))
             v1 = emit_tacky(g, e1, instructions)
-            instructions += [
+            instructions += (
                 asdl.CopyTACKY(v1, result),
                 asdl.JumpTACKY(end_label),
                 asdl.LabelTACKY(e2_label),
-            ]
+            )
             v2 = emit_tacky(g, e2, instructions)
-            instructions += [
+            instructions += (
                 asdl.CopyTACKY(v2, result),
                 asdl.LabelTACKY(end_label),
-            ]
+            )
             return result
         case asdl.FunctionCallAST(name, args):
             args = [emit_tacky(g, arg, instructions) for arg in args]
